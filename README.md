@@ -4,37 +4,23 @@ This is a Python program designed to solve Sudoku quizzes with difficulty levels
 
 ## SETUP
 
-After cloning repo follow the steps and assuming python 3.10 is installed:
+After cloning repo, run the following to setup everything for the code to work. This is assuming python 3.10 is installed:
 
-1. Create Virtual Environment:
-
-    ``` bash
-    python -m venv venv
+- For Windows:
+  
+    ```cmd
+    python setup.py && .venv\\Scripts\\activate
     ```
 
-2. Activate the Virtual Environment:
-
-    For Windows:
+- For Linux:
   
     ``` bash
-    venv\Scripts\activate
-    ```
-
-    For Linux:
-  
-    ``` bash
-    source venv/bin/activate
-    ```
-
-3. Install the Required Libraries
-
-    ``` bash
-    pip install -r requirements.txt
+    python setup.py && source .venv/bin/activate
     ```
 
 ## Try Solving a Single SUDOKU
 
-In the `./inputs` folder, you'll find some example quiz files. To get started, try running the solver with the following command:
+In the `./inputs` folder, you'll find some example sudoku quiz files. To get started, try running the solver with the following command:
 
 ``` bash
 py ./sudoku_solver.py ./inputs/intermediate.xlsx
@@ -44,7 +30,7 @@ You can modify the `./inputs/problem_template.xlsx` accordingly to create a new 
 
 The solver is currently unable to solve the `./inputs/evil.xlsx` quiz.
 
-## Try Solving 1k Quizzes
+## Try Solving a Thousand Quizzes
 
 This `./datasets/sudoku.csv` contains a csv file with 1 Million Sudoku quizzes. Try and solve 1 thousand of these by running:
 
