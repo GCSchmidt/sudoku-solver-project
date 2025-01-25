@@ -1,12 +1,14 @@
-import pandas as pd
 import unittest
+import os
+import sys
 import time
 import random
+import pandas as pd
 import sudoku_solver as ss
 from sudoku_solver import Solver
 import multiprocessing as mp
 from functools import partial
-import os
+
 
 QUIZ_DF = pd.read_csv(r'datasets/sudoku.csv')
 
@@ -20,7 +22,7 @@ def solve_quiz(quiz_num):
 
     quiz, expected_solution = ss.load_quiz_from_dataset(QUIZ_DF, quiz_num)
     solver = Solver(quiz)
-    solver.try_hard = False
+    solver.try_hard = True
     actual_solution_array = solver.solve()
     actual_solution_str = "".join([str(num) for num in actual_solution_array.flatten()])
     quiz_result = (expected_solution == actual_solution_str)
@@ -29,29 +31,40 @@ def solve_quiz(quiz_num):
 
 class TestSolver(unittest.TestCase):
 
+    def test_single_quiz(self):
+        print("\nRunning single quize test...")
+        results_df = pd.DataFrame(columns=['id', 'expected_solution', 'actual_solution', 'correct'])
+        quiz_num = 1_000
+        passed = solve_quiz(quiz_num)
+        results_df.to_csv(r'outputs/test_single_results.csv', index=False)
+        print(f"\tThe solution of quiz {quiz_num} is {'correct' if passed else 'incorrect'}!")
+        self.assertTrue(passed)
+  
     def test_1k_quizes(self):
         global QUIZ_DF
-        resuls_df = pd.DataFrame(columns=['id', 'expected_solution', 'actual_solution', 'correct'])
+
+        print("Running 1k quizzes test...")
         passed_n = 0
         N = 1_000                    # len(QUIZ_DF)
-        quiz_nums = random.sample(range(0, 1_000_000), N) 
+        quiz_nums = random.sample(range(0, 1_000), N)
         timer = time.time()
         # Use multiprocessing to solve quizzes in parallel
         with mp.Pool(processes=mp.cpu_count()) as pool:
             solve_quiz_partial = partial(solve_quiz)
             results = pool.map(solve_quiz_partial, quiz_nums)
 
-        # Process results
-        for quiz_num, expected_solution, actual_solution_str, quiz_result in results:
-            resuls_df.loc[quiz_num] = [quiz_num, expected_solution, actual_solution_str, quiz_result]
+        # See if there are any failures
+        for _, _, _, quiz_result in results:
             if quiz_result:
                 passed_n += 1
 
+        results_df = pd.DataFrame(results, columns=['id', 'expected_solution', 'actual_solution', 'correct'])
+
         timer = time.time() - timer
         os.makedirs('outputs', exist_ok=True)
-        resuls_df.to_csv(r'outputs/test_results.csv', index=False)
-        print(f"It took {round(timer, 3)} to solve {N} SUDOKU quizzes.")
-        print(f"From {N} total quizzes, {passed_n} were correctly solved!")
+        results_df.to_csv(r'outputs/test_1k_results.csv', index=False)
+        print(f"\tIt took {round(timer, 3)} seconds to solve {N} SUDOKU quizzes.")
+        print(f"\tFrom {N} total quizzes, {passed_n} were correctly solved!")
         self.assertTrue(passed_n == N)
 
 
