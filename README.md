@@ -44,6 +44,10 @@ Hopefully, you will see:
 
 To verify the results, you can compare the expected and actual solutions in the CSV file located at `./output/test_1k_results.csv`
 
+## Solving 1 Million Quizzes
+
+The `sudoku_solver_solve_them_all.ipynb` jupyter notebook was used to solve all the quizzes in the dataset. All the quizzes were successfully solved!
+
 ## To Generate Quizzes
 
 Sudoku quizzes can be generated with [this](https://www.ocf.berkeley.edu/~arel/sudoku/main.html).
