@@ -1,6 +1,5 @@
 import unittest
 import os
-import sys
 import time
 import random
 import pandas as pd

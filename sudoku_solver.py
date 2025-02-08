@@ -18,24 +18,19 @@ def load_quiz_from_dataset(
         quiz_numnber: int
         ):
     """
-    Load sudoku quiz from dataset located at ./datasets/sudoku.csv
-    (zero-indexed).
-    """
-    quiz_str, solution_str = quiz_df.loc[quiz_numnber]['quizzes'], quiz_df.loc[quiz_numnber]['solutions']
-    quiz_arr = np.array([np.uint8(c) for c in quiz_str])
-    quiz_arr = quiz_arr.reshape(9, 9)
-    return quiz_arr, solution_str
-
-
-def load_solution_from_dataset(
-        quiz_df: pd.DataFrame,
-        quiz_numnber: int
-        ) -> np.array:
-    """
-    Load sudoku quiz from dataset located at ./datasets/sudoku.csv
+    Load sudoku quiz and its solution from dataset located at ./datasets/sudoku.csv
     (zero-indexed).
     """
     quiz_str = quiz_df.loc[quiz_numnber]['quizzes']
+    solution_str = quiz_df.loc[quiz_numnber]['solutions']
+    quiz_arr = quiz_str_to_grid(quiz_str)
+    return quiz_arr, solution_str
+
+
+def quiz_str_to_grid(quiz_str: str) -> np.array:
+    """
+    Converts a sudoku quiz in the string format of the dataset into a np.array
+    """
     quiz_arr = np.array([np.uint8(c) for c in quiz_str])
     quiz_arr = quiz_arr.reshape(9, 9)
     return quiz_arr
