@@ -3,14 +3,13 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 
 
-def prep_model_input(img):
+def prep_model_input(img) -> np.array:
     """
     Converts image into format for the tf CNN model.
     """
     img = 255-img
     img = img / 255.0
-    img_array = tf.expand_dims(img, axis=0)
-    return img_array
+    return img
 
 
 class SNET_Model():
@@ -18,13 +17,16 @@ class SNET_Model():
     def __init__(self):
         self.model = load_model("./weights/SNET.keras", compile=False)
  
-    def predict_digit(self, img) -> int:
+    def predict_digits(self, images) -> list:
         """
-        Takes a binary image of shape 32x32 to predict a digit present in the image.
+        Takes a list of binary images of shape 32x32 to predict a digit present in each image.
         """
-        prediction = self.model.predict(prep_model_input(img), verbose=0)[0]
-        predicted_digit = int(np.argmax(prediction))
-        return predicted_digit
+        images = np.array([prep_model_input(img) for img in images])
+        if images.ndim < 3:  # add batch dimension for single image case
+            images = np.expand_dims(images, axis=0)
+        predictions = self.model.predict(images, verbose=0)
+        predicted_digits = np.argmax(predictions, axis=1)
+        return predicted_digits.tolist()
 
 
 if __name__ == "__main__":
