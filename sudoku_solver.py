@@ -5,10 +5,17 @@ import pandas as pd
 import time
 import argparse
 from collections import defaultdict
+import cv2 as cv
 
+# suppress TensorFlow messsages
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
+
+import snet
 
 logger = logging.getLogger(__name__)
 logger.disabled = True
+digit_clf = snet.SNET_Model()
 
 # Helper Functions
 
@@ -36,7 +43,7 @@ def quiz_str_to_grid(quiz_str: str) -> np.array:
     return quiz_arr
 
 
-def read_input_file(quiz_file: str) -> np.array:
+def read_xlsx_file(quiz_file: str) -> np.array:
     """
     Loads quiz from .xlsx file to np array. 
     """
@@ -74,6 +81,117 @@ def sudoku_grid_to_string(grid: np.array) -> str:
             formatted_rows.append("-" * 21)  # Length matches the row format
 
     return "\n".join(formatted_rows)
+
+
+def filter_close_coordinates(coordinates, min_distance=10):
+    """
+    Remove coordinates that are too close to each other.
+    """
+    filtered = []
+
+    for coord_1 in coordinates:
+        preserve = True
+        for coord_2 in filtered:
+            distance = np.linalg.norm(coord_1 - coord_2)
+            if distance > min_distance:
+                continue
+            else:
+                preserve = False
+                break
+        if preserve:
+            filtered.append(coord_1) 
+    return filtered 
+
+
+def get_coords_of_lines(corner_coords):
+    """
+    Determines the coordiantes of the lines within the images from Harris corner coordianates.
+    """
+    corner_coords.sort(key=lambda coord: coord[0]) # sort based on y coordinate
+    vertical_lines_coords = [int(coord[1]) for coord in corner_coords[0:10]] # get the 10 smallest y coordinates
+    vertical_lines_coords.sort() # the x coordiantes of the vertical lines
+
+    corner_coords.sort(key=lambda coord: coord[1]) # sort based on x coordinate
+    horizontal_lines_coords = [int(coord[0]) for coord in corner_coords[0:10]] # get the 10 smallest x coordinates
+    horizontal_lines_coords.sort() # the y coordiantes of the horizontal lines, y = horizontal_lines
+    return vertical_lines_coords, horizontal_lines_coords
+
+
+def crop_img(img, scale=1.0):
+    """
+    Crops an image from center according to some scale.
+    """
+    center_x, center_y = img.shape[1] / 2, img.shape[0] / 2
+    width_scaled, height_scaled = img.shape[1] * scale, img.shape[0] * scale
+    left_x, right_x = center_x - width_scaled / 2, center_x + width_scaled / 2
+    top_y, bottom_y = center_y - height_scaled / 2, center_y + height_scaled / 2
+    img_cropped = img[int(top_y):int(bottom_y), int(left_x):int(right_x)]
+    return img_cropped
+
+
+def get_sqr_sub_image(img, row: int, col: int, vert_lines: list, hori_lines: list):
+    """
+    Get sub image from image, which captures a single cell of a sudoku quiz image.
+    """
+    x_min = vert_lines[col]
+    x_max = vert_lines[col+1]
+    y_min = hori_lines[row]
+    y_max = hori_lines[row+1]
+    sqr_sub_image = img[y_min:y_max, x_min:x_max]
+    cropped_image = crop_img(sqr_sub_image, 0.8)
+    img_blur = cv.GaussianBlur(cropped_image, (11, 11),0)
+    img_th = cv.adaptiveThreshold(img_blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 5, 1)
+    resized_img = cv.resize(img_th, (32, 32), interpolation=cv.INTER_NEAREST)
+    return resized_img
+
+
+def detect_digit(images) -> str:
+    """
+    Returns the most likely digit in the image using the trained classifier.
+    """
+    global digit_clf
+    digit_list = digit_clf.predict_digits(images)
+    str_digits = "".join([str(digit) for digit in digit_list])
+    return str_digits
+
+
+def image_to_string(img, vertical_lines_coords, horizontal_lines_coords):
+    """
+    Generates a sudoku quiz string from an image. 
+    """
+    output_str = ''
+    cell_images = []
+    for row in range(0, 9):
+        for col in range(0, 9):
+            cell_img = get_sqr_sub_image(img, row, col, vertical_lines_coords, horizontal_lines_coords)
+            cell_images.append(cell_img)
+            
+    output_str = detect_digit(cell_images)
+    return output_str
+
+
+def image_to_sudoku_quiz(f_path) -> str:
+    """
+    Generates a sudoku quiz grid from an image. 
+    """
+    # load image and preprocess
+    img_gray = cv.imread(f_path, cv.IMREAD_GRAYSCALE)
+    img_th = cv.adaptiveThreshold(img_gray, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 5, 3)
+
+    # detect corner feature
+    dst = cv.cornerHarris(img_th, 2, 3, 0.04)
+    dst = cv.dilate(dst, None)
+    corner_condition = dst > 0.01*dst.max()
+    corner_coords = np.argwhere(corner_condition)
+    corner_coords_reduced = filter_close_coordinates(corner_coords, 15) # reduce corners
+
+    # get coordinates of lines
+    vertical_lines_coords, horizontal_lines_coords = get_coords_of_lines(corner_coords_reduced)
+
+    # generate string 
+    raw_string = image_to_string(img_th, vertical_lines_coords, horizontal_lines_coords)
+
+    return quiz_str_to_grid(raw_string)
 
 
 # Classes
@@ -310,7 +428,15 @@ def main(args):
         logger.disabled = False
 
     try:
-        grid_initial = read_input_file(quiz_file)
+        _, file_extension = os.path.splitext(quiz_file)
+        if file_extension in ['.png', '.jpeg']:
+            grid_initial = image_to_sudoku_quiz(quiz_file)
+        elif file_extension == '.xlsx':
+            grid_initial = read_xlsx_file(quiz_file)
+        else:
+            print(f"\'{quiz_file}\' is not in a supported file format.\
+                  \nSupported file formats are: png, jpeg and xlsx")
+            quit()
     except OSError:
         print(f"Could not open/read file: \'{quiz_file}\'")
         quit()
@@ -350,7 +476,7 @@ def parse_arguments():
                     description='This program solves SUDOKU quizzes',
                     epilog='Have fun!')
 
-    parser.add_argument('quiz_file', help=".xlsx file that has a SUDOKU quiz")  # positional argument
+    parser.add_argument('quiz_file', help="image or .xlsx file that has a SUDOKU quiz")  # positional argument
     parser.add_argument('--log', action='store_true', help="Enables logging to file")    # on/off flag
     args = parser.parse_args()
     return args
