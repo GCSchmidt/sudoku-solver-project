@@ -1,6 +1,6 @@
 # SUDOKU SOLVER
 
-This project is a Python-based solution developed to reliably solve Sudoku puzzles. The primary objective of the program is to solve all quizzes in the Sudoku dataset from [Kaggle](https://www.kaggle.com/datasets/bryanpark/sudoku?resource=download).
+This project is a Python-based solution developed to reliably solve Sudoku quizzes. The primary objective of the program is to solve all quizzes in the Sudoku dataset from [Kaggle](https://www.kaggle.com/datasets/bryanpark/sudoku?resource=download). The solver provides the ability to solve Sudoku quizzes from `.xlsx` files or images of the Sudoku grids taken from [sudoku.com](https://sudoku.com/). Images must contain only the Sudoku grid for the solver to work correctly with the image input. The solver is currently unable to solve the quizzes catagorized as **Evil** (the level above **Hard**). The file at `./inputs/xlsx/evil.xlsx` is an example of such a quiz.
 
 ## SETUP
 
@@ -20,22 +20,28 @@ After cloning repo, run the following to setup everything for the code to work. 
 
 ## Try Solving a Single SUDOKU
 
-In the `./inputs` folder, you'll find some example sudoku quiz files. To get started, try running the solver with the following command:
+The `sudoku_solver.py` program offers the ability to solve Sudoku quizzes from `.xlsx` files or image files (`.png`, `.jpg`). Some examples of input files can be found under the  `.\inputs\` folder.
+
+To get started, try running the solver to solve a quiz in .xlsx format using the following command:
 
 ``` bash
-py ./sudoku_solver.py ./inputs/intermediate.xlsx
+py ./sudoku_solver.py ./inputs/xlsx/intermediate.xlsx
 ```
 
-You can modify the `./inputs/problem_template.xlsx` accordingly to create a new quiz for the solver.
+Or Try and solve a quiz from an image with one of the examples using the following command:
 
-The solver is currently unable to solve the `./inputs/evil.xlsx` quiz.
+``` bash
+py ./sudoku_solver.py ./inputs/images/quiz_3.png
+```
+
+You can modify the `./inputs/xlsx/problem_template.xlsx` accordingly to create a new quiz for the solver. Alternatively, visit [sudoku.com](https://sudoku.com/), take a screenshot of a Sudoku grid, and try solving it with the program..
 
 ## Try Solving a Thousand Quizzes
 
 This `./datasets/sudoku.csv` contains a csv file with 1 Million Sudoku quizzes. Try and solve 1 thousand of these by running:
 
 ``` bash
-py ./test.py TestSolver.test_1k_quizes
+py ./test.py TestSolver.test_1k_quizzes
 ```
 
 Hopefully, you will see:
@@ -54,5 +60,14 @@ Sudoku quizzes can be generated with [this](https://www.ocf.berkeley.edu/~arel/s
 
 ## Future Plans
 
-1. Develop a method to solve Sudoku quizes from screenshots.
-2. Solve quizzes of 'evil' difficulty.
+1. Solve quizzes of 'evil' difficulty.
+
+## Extra
+
+### Training a Digit Classifier
+
+To enable the solver to process Sudoku quizzes from images, a digit recognition model was trained to identify digits from images. The training process is documented in the `digit_classifier.ipynb` notebook, which outlines the steps taken to develop and train the model.  
+
+### Solving Sudoku Quizes from Images
+
+The process of solving a Sudoku quiz from an image is documented in the `sudoku_image_solver.ipynb` notebook. The notebook outlines the steps involved to process solve a Sudoku quiz from an image.
