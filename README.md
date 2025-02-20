@@ -61,6 +61,7 @@ Sudoku quizzes can be generated with [this](https://www.ocf.berkeley.edu/~arel/s
 ## Future Plans
 
 1. Solve quizzes of 'evil' difficulty.
+2. Speed up 'image-to-quiz' pre-processing by filtering out corner features more efficiently.
 
 ## Extra
 
