@@ -34,10 +34,10 @@ class TestSolver(unittest.TestCase):
         print("\nRunning single quize test...")
         results_df = pd.DataFrame(columns=['id', 'expected_solution', 'actual_solution', 'correct'])
         quiz_num = 1_000
-        passed = solve_quiz(quiz_num)
+        _, _, _, quiz_result = solve_quiz(quiz_num)
         results_df.to_csv(r'outputs/test_single_results.csv', index=False)
-        print(f"\tThe solution of quiz {quiz_num} is {'correct' if passed else 'incorrect'}!")
-        self.assertTrue(passed)
+        print(f"\tThe solution of quiz {quiz_num} is {'correct' if quiz_result else 'incorrect'}!")
+        self.assertTrue(quiz_result)
   
     def test_1k_quizes(self):
         global QUIZ_DF
