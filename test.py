@@ -46,6 +46,14 @@ class TestSolver(unittest.TestCase):
         N = 1_000
         quiz_nums = random.sample(range(0, 1_000), N)
         timer = time.time()
+        
+        # Set multiprocessing method
+        try:
+            mp.set_start_method('spawn')
+        except RuntimeError:
+            # Method already set
+            pass
+
         # Use multiprocessing to solve quizzes in parallel
         with mp.Pool(processes=mp.cpu_count()) as pool:
             solve_quiz_partial = partial(solve_quiz)
