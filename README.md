@@ -1,6 +1,6 @@
 # SUDOKU SOLVER
 
-This project is a Python-based solution developed to reliably solve Sudoku quizzes. The primary objective of the program is to solve all quizzes in the Sudoku dataset from [Kaggle](https://www.kaggle.com/datasets/bryanpark/sudoku?resource=download). The solver provides the ability to solve Sudoku quizzes from `.xlsx` files or images of the Sudoku grids taken from [sudoku.com](https://sudoku.com/). Images must contain only the Sudoku grid for the solver to work correctly with the image input. The solver is currently unable to solve the quizzes catagorized as **Evil** (the level above **Hard**). The file at `./inputs/xlsx/evil.xlsx` is an example of such a quiz.
+This project is a Python-based solution developed to reliably solve Sudoku quizzes. The primary objective of the program is to solve all quizzes in the Sudoku dataset from [Kaggle](https://www.kaggle.com/datasets/bryanpark/sudoku?resource=download). The solver provides the ability to solve Sudoku quizzes from `.xlsx` files or images of the Sudoku grids taken from [sudoku.com](https://sudoku.com/). Images must contain only the Sudoku grid for the solver to work correctly with the image input. The solver has been able to solve quizzes catagorized as **Master**. The file at `./inputs/xlsx/evil.xlsx` is an example of such a quiz.
 
 ## SETUP
 

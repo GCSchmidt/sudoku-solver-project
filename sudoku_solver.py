@@ -299,9 +299,75 @@ class Solver():
         """
         return not self.unsolved_cells      # if the dictionary is empty, the solution is complete
 
-    def solve_cell(self, position, possibilities, solved_cells):
+    def get_ids_of_unsolved_cells(self):
+        """Get the ids of rows, columns and regions with unsolved cells"""
+        row_ids, col_ids, region_ids = set(), set(), set() 
+
+        for pos in self.unsolved_cells:
+            row_ids.add(pos[0])
+            col_ids.add(pos[1])
+            row_ids.add((pos[0] // 3) * 3 + (pos[1] // 3))
+
+        return row_ids, col_ids, region_ids
+
+    def get_unsolved_positions_in_row(self, row_id)-> list:
+        """Get a list of postions of unsolved cells in a row"""
+        positions = [pos for pos in self.unsolved_cells if pos[0] == row_id]
+        return positions
+    
+    def get_unsolved_positions_in_col(self, col_id)-> list:
+        """Get a list of postions of unsolved cells in a row"""
+        positions = [pos for pos in self.unsolved_cells if pos[1] == col_id]
+        return positions
+
+    def get_unsolved_positions_in_region(self, reg_id)-> list:
+        """Get a list of postions of unsolved cells in a region
+        (top-left=0, bottom-right=8)"""
+        positions = [pos for pos in self.unsolved_cells if ((pos[0] // 3) * 3 + (pos[1] // 3) == reg_id)]
+        return positions
+
+    def check_naked_pairs(self, positions: list):
+
+        if len(positions) <= 2:
+            return
+
+        pair_count = defaultdict(int)
+
+        for pos in positions:
+            possibilities = self.unsolved_cells[pos]
+            if len(possibilities) == 2:
+                pair_count[tuple(possibilities)] += 1
+            
+        # only pairs are valid
+        pair_count = {key: val for key, val in pair_count.items() if val==2}
+
+        if not pair_count:
+            # no pairs found
+            return
+        
+        for pos in positions:
+            possibilities = self.unsolved_cells[pos]
+            logger.info(f"\nTrying to solve cell @ {pos}\n\tCurrent possibilities: {possibilities}")
+            if tuple(self.unsolved_cells[pos]) in pair_count:
+                continue
+            else:
+                for pair in pair_count:
+                    # reduce the possibilties to exclude the naked pairs
+                    possibilities = self.unsolved_cells[pos]
+                    possibilities = np.array([p for p in possibilities if p not in pair])
+                    self.unsolved_cells[pos] = possibilities
+                    logger.info(f"\n\tPossibilities after checkig naked pairs: {self.unsolved_cells[pos]}")
+                    if len(possibilities) == 1:
+                        # solution found by reducing with naked pairs
+                        self.solve_cell(pos, possibilities)
+                        self.unsolved_cells.pop(pos, None)
+                        break
+        return
+
+    def solve_cell(self, position, possibilities, solved_cells=None):
         self.grid_intermediate[position[0]][position[1]] = possibilities[0] # save solution to grid
-        solved_cells.append(position) # add key/position to list that we use to remove unsolved cell entry 
+        if solved_cells is not None:
+            solved_cells.append(position) # add key/position to list that we use to remove unsolved cell entry 
         logger.info(f"\nSOLVED!!!")
         return
 
@@ -368,7 +434,10 @@ class Solver():
         Solves the initial grid.
         """
         # TODO check other unsolved cells in row, and collumns and boxes to figure out correct value
-        repeated = 0
+        
+        loops_with_no_update = 0
+        n_unsolved_cells = len(self.unsolved_cells)
+
         while not self.check_complete():
             solved_cells = []
             for position, possibilities in self.unsolved_cells.items():
@@ -404,10 +473,24 @@ class Solver():
 
             for position in solved_cells:
                 self.unsolved_cells.pop(position, None)
+            
+            if len(self.unsolved_cells) < n_unsolved_cells:
+                n_unsolved_cells = len(self.unsolved_cells)
+                loops_with_no_update = 0
+            else:
+                loops_with_no_update += 1
+                # no changes were made, try with naked pairs
+                row_ids, col_ids, region_ids = self.get_ids_of_unsolved_cells()
+                for i in row_ids:
+                    self.check_naked_pairs(self.get_unsolved_positions_in_row(i))
+                for i in col_ids:
+                    self.check_naked_pairs(self.get_unsolved_positions_in_col(i))
+                for i in region_ids:
+                    self.check_naked_pairs(self.get_unsolved_positions_in_region(i))
 
-            repeated += 1
-            logger.info(f"\nREPEATED LOOPS: {repeated}")
-            if repeated >= 20:
+            logger.info(f"\nNUMBER OF LOOPS WITH NO UPDATE: {loops_with_no_update}")
+            
+            if loops_with_no_update >= 2:
                 logger.info(f"\nTOO MANY LOOPS")
                 break
 
