@@ -16,9 +16,8 @@ def solve_quiz(quiz_num):
     """
     Helper function to solve a single quiz.
     """
-    # load quiz and solution
     global QUIZ_DF
-
+    # load quiz and solution
     quiz, expected_solution = ss.load_quiz_from_dataset(QUIZ_DF, quiz_num)
     solver = Solver(quiz)
     solver.try_hard = True
@@ -44,7 +43,7 @@ class TestSolver(unittest.TestCase):
 
         print("Running 1k quizzes test...")
         passed_n = 0
-        N = 1_000                    # len(QUIZ_DF)
+        N = 1_000
         quiz_nums = random.sample(range(0, 1_000), N)
         timer = time.time()
         # Use multiprocessing to solve quizzes in parallel
