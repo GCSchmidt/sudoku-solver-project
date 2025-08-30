@@ -31,7 +31,7 @@ def solve_quiz(quiz_num):
 class TestSolver(unittest.TestCase):
 
     def test_single_quiz(self):
-        print("\nRunning single quize test...")
+        print("\nRunning single quiz test...")
         results_df = pd.DataFrame(columns=['id', 'expected_solution', 'actual_solution', 'correct'])
         quiz_num = 1_000
         _, _, _, quiz_result = solve_quiz(quiz_num)
@@ -39,7 +39,7 @@ class TestSolver(unittest.TestCase):
         print(f"\tThe solution of quiz {quiz_num} is {'correct' if quiz_result else 'incorrect'}!")
         self.assertTrue(quiz_result)
   
-    def test_1k_quizes(self):
+    def test_1k_quizzes(self):
         global QUIZ_DF
 
         print("Running 1k quizzes test...")
