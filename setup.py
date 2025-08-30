@@ -1,14 +1,16 @@
 import os
+import sys
 import subprocess
 import platform
 import zipfile
 
 
 def create_virtual_environment():
-    """Creates a virtual environment named 'venv'."""
+    """Creates a virtual environment named '.venv'."""
     if not os.path.exists(".venv"):
         try:
-            subprocess.run(["python", "-m", "venv", ".venv"], check=True)
+            # Use sys.executable for cross-platform compatibility
+            subprocess.run([sys.executable, "-m", "venv", ".venv"], check=True)
             print("Virtual environment '.venv' created successfully.")
         except subprocess.CalledProcessError as e:
             print(f"Error creating virtual environment: {e}")
@@ -44,8 +46,14 @@ def install_requirements():
 
 def unzip_dataset():
     """Unzips the sudoku.zip file in ./datasets/"""
-    with zipfile.ZipFile(r'datasets/sudoku.zip', 'r') as zip_ref:
-        zip_ref.extractall(r'datasets')
+    try:
+        with zipfile.ZipFile(r'datasets/sudoku.zip', 'r') as zip_ref:
+            zip_ref.extractall(r'datasets')
+        print("Dataset unzipped successfully.")
+    except FileNotFoundError:
+        print("sudoku.zip not found in datasets folder.")
+    except Exception as e:
+        print(f"Error unzipping dataset: {e}")
 
 
 if __name__ == "__main__":
