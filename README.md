@@ -15,7 +15,7 @@ After cloning repo, run the following to setup everything for the code to work. 
 - For Linux:
   
     ``` bash
-    python setup.py && source .venv/bin/activate
+    python3 setup.py && source .venv/bin/activate
     ```
 
 ## Try Solving a Single SUDOKU
@@ -25,13 +25,13 @@ The `sudoku_solver.py` program offers the ability to solve Sudoku quizzes from `
 To get started, try running the solver to solve a quiz in .xlsx format using the following command:
 
 ``` bash
-py ./sudoku_solver.py ./inputs/xlsx/intermediate.xlsx
+python3 ./sudoku_solver.py ./inputs/xlsx/intermediate.xlsx
 ```
 
 Or Try and solve a quiz from an image with one of the examples using the following command:
 
 ``` bash
-py ./sudoku_solver.py ./inputs/images/quiz_3.png
+python3 ./sudoku_solver.py ./inputs/images/quiz_3.png
 ```
 
 You can modify the `./inputs/xlsx/problem_template.xlsx` accordingly to create a new quiz for the solver. Alternatively, visit [sudoku.com](https://sudoku.com/), take a screenshot of a Sudoku grid, and try solving it with the program..
@@ -41,7 +41,7 @@ You can modify the `./inputs/xlsx/problem_template.xlsx` accordingly to create a
 This `./datasets/sudoku.csv` contains a csv file with 1 Million Sudoku quizzes. Try and solve 1 thousand of these by running:
 
 ``` bash
-py ./test.py TestSolver.test_1k_quizzes
+python3 ./test.py TestSolver.test_1k_quizzes
 ```
 
 Hopefully, you will see:
@@ -60,8 +60,9 @@ Sudoku quizzes can be generated with [this](https://www.ocf.berkeley.edu/~arel/s
 
 ## Future Plans
 
-1. Solve quizzes of 'evil' difficulty.
-2. Speed up 'image-to-quiz' pre-processing by filtering out corner features more efficiently.
+1. Solve quizzes of 'evil' difficulty. Possible solution: recursion.
+2. Improve setup.py. 
+3. Speed up 'image-to-quiz' pre-processing by filtering out corner features more efficiently.
 
 ## Extra
 
@@ -71,4 +72,4 @@ To enable the solver to process Sudoku quizzes from images, a digit recognition 
 
 ### Solving Sudoku Quizes from Images
 
-The process of solving a Sudoku quiz from an image is documented in the `sudoku_image_solver.ipynb` notebook. The notebook outlines the steps involved to process solve a Sudoku quiz from an image.
+The process of solving a Sudoku quiz from an image is documented in the `sudoku_image_solver.ipynb` notebook. The notebook outlines the steps involved to solve a Sudoku quiz from an image.
