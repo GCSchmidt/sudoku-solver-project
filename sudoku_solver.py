@@ -28,13 +28,13 @@ def load_quiz_from_dataset(
     Load sudoku quiz and its solution from dataset located at ./datasets/sudoku.csv
     (zero-indexed).
     """
-    quiz_str = quiz_df.loc[quiz_numnber]['quizzes']
+    quiz_str = str(quiz_df.loc[quiz_numnber]['quizzes'])
     solution_str = quiz_df.loc[quiz_numnber]['solutions']
     quiz_arr = quiz_str_to_grid(quiz_str)
     return quiz_arr, solution_str
 
 
-def quiz_str_to_grid(quiz_str: str) -> np.array:
+def quiz_str_to_grid(quiz_str: str) -> np.ndarray:
     """
     Converts a sudoku quiz in the string format of the dataset into a np.array
     """
@@ -43,7 +43,7 @@ def quiz_str_to_grid(quiz_str: str) -> np.array:
     return quiz_arr
 
 
-def read_xlsx_file(quiz_file: str) -> np.array:
+def read_xlsx_file(quiz_file: str) -> np.ndarray:
     """
     Loads quiz from .xlsx file to np array. 
     """
@@ -63,7 +63,7 @@ def row_and_col_to_region(row: int, col: int) -> int:
     return (row // 3) * 3 + (col // 3)
 
 
-def sudoku_grid_to_string(grid: np.array) -> str:
+def sudoku_grid_to_string(grid: np.ndarray) -> str:
     """
     Creates a nice string representation of a sudoku grid.
     """
@@ -107,13 +107,13 @@ def get_coords_of_lines(corner_coords):
     """
     Determines the coordiantes of the lines within the images from Harris corner coordianates.
     """
-    corner_coords.sort(key=lambda coord: coord[0]) # sort based on y coordinate
-    vertical_lines_coords = [int(coord[1]) for coord in corner_coords[0:10]] # get the 10 smallest y coordinates
-    vertical_lines_coords.sort() # the x coordiantes of the vertical lines
+    corner_coords.sort(key=lambda coord: coord[0])  # sort based on y coordinate
+    vertical_lines_coords = [int(coord[1]) for coord in corner_coords[0:10]]  # get the 10 smallest y coordinates
+    vertical_lines_coords.sort()  # the x coordiantes of the vertical lines
 
-    corner_coords.sort(key=lambda coord: coord[1]) # sort based on x coordinate
-    horizontal_lines_coords = [int(coord[0]) for coord in corner_coords[0:10]] # get the 10 smallest x coordinates
-    horizontal_lines_coords.sort() # the y coordiantes of the horizontal lines, y = horizontal_lines
+    corner_coords.sort(key=lambda coord: coord[1])  # sort based on x coordinate
+    horizontal_lines_coords = [int(coord[0]) for coord in corner_coords[0:10]]  # get the 10 smallest x coordinates
+    horizontal_lines_coords.sort()  # the y coordiantes of the horizontal lines, y = horizontal_lines
     return vertical_lines_coords, horizontal_lines_coords
 
 
@@ -207,7 +207,7 @@ class Solver():
             self.unsolved_cells[pos]  # create dict entries with defaut values
         self.try_hard = True
 
-    def check_if_only(self, possibilities: np.array, positions: list) -> np.array:
+    def check_if_only(self, possibilities: np.ndarray, positions: list) -> np.ndarray:
         """
         Checks to see if posibilities contains a solution/number,
         that is not a possibility of the unsolved cells at the given positions.
@@ -310,17 +310,17 @@ class Solver():
 
         return row_ids, col_ids, region_ids
 
-    def get_unsolved_positions_in_row(self, row_id)-> list:
+    def get_unsolved_positions_in_row(self, row_id) -> list:
         """Get a list of postions of unsolved cells in a row"""
         positions = [pos for pos in self.unsolved_cells if pos[0] == row_id]
         return positions
     
-    def get_unsolved_positions_in_col(self, col_id)-> list:
+    def get_unsolved_positions_in_col(self, col_id) -> list:
         """Get a list of postions of unsolved cells in a row"""
         positions = [pos for pos in self.unsolved_cells if pos[1] == col_id]
         return positions
 
-    def get_unsolved_positions_in_region(self, reg_id)-> list:
+    def get_unsolved_positions_in_region(self, reg_id) -> list:
         """Get a list of postions of unsolved cells in a region
         (top-left=0, bottom-right=8)"""
         positions = [pos for pos in self.unsolved_cells if ((pos[0] // 3) * 3 + (pos[1] // 3) == reg_id)]
@@ -354,7 +354,7 @@ class Solver():
                 for pair in pair_count:
                     # reduce the possibilties to exclude the naked pairs
                     possibilities = self.unsolved_cells[pos]
-                    possibilities = np.array([p for p in possibilities if p not in pair])
+                    possibilities = np.array([p for p in possibilities if p not in pair]).flatten()
                     self.unsolved_cells[pos] = possibilities
                     logger.info(f"\n\tPossibilities after checkig naked pairs: {self.unsolved_cells[pos]}")
                     if len(possibilities) == 1:
@@ -371,7 +371,7 @@ class Solver():
         logger.info(f"\nSOLVED!!!")
         return
 
-    def is_sudoku_solved_1(self):
+    def is_sudoku_solved(self):
         """
         Checks if solution is correct
         Time complextity: 9*9 = C
@@ -391,7 +391,9 @@ class Solver():
                     logger.info(f"INVALID NUMBER FOUND @{row,col}")
                     return False
                 # if value already in row/col/region
-                if cell_value in row_sets[row] or cell_value in col_sets[col] or cell_value in region_sets[row_and_col_to_region(row, col)]:
+                if ((cell_value in row_sets[row]) 
+                        or (cell_value in col_sets[col]) 
+                        or (cell_value in region_sets[row_and_col_to_region(row, col)])):
                     logger.info(f"DUPLICATE FOUND @{row,col}")
                     return False
                 
@@ -399,9 +401,12 @@ class Solver():
                 row_sets[row].add(cell_value)
                 col_sets[col].add(cell_value)
                 region_sets[row_and_col_to_region(row, col)].add(cell_value)
-                logger.info(f'{row_sets}\n{"-"*100}\n{col_sets}\n{"-"*100}\n{region_sets}')
         
-        logger.info(f'{row_sets}\n{"-"*100}\n{col_sets}\n{"-"*100}\n{region_sets}')
+        logger.info(
+            f"\nSets used to verify validity of solution:"
+            f"\nROWS: {row_sets}\n{"-"*100}"
+            f"\nCOLS:{col_sets}\n{"-"*100}"
+            f"\nREGIONS:{region_sets}")
         return True
 
     def is_sudoku_solved_2(self):
@@ -429,7 +434,7 @@ class Solver():
 
         return True
 
-    def solve(self) -> np.array:
+    def solve(self) -> np.ndarray:
         """
         Solves the initial grid.
         """
@@ -492,9 +497,66 @@ class Solver():
             
             if loops_with_no_update >= 2:
                 logger.info(f"\nTOO MANY LOOPS")
+                logger.info(f"\nATTEMPTING TO SOLVE WITH BRUTE FORCE")
+                # use brute force to find solution
+                # needs to be optimized
+                self.solve_recursively(0, 0)
                 break
 
         return self.grid_intermediate
+    
+    ############################################
+    # functions for brute force solution 
+    # copied from https://www.geeksforgeeks.org/dsa/sudoku-backtracking-7/
+    # TODO increase efficiency
+    ############################################
+
+    def is_valid_cell_value(self, row, col, num):
+        """Check to see if num can be placed at the cell at (row,col)."""
+        # Check if num exists in the row
+        for x in range(9):
+            if self.grid_intermediate[row][x] == num:
+                return False
+
+        # Check if num exists in the col
+        for x in range(9):
+            if self.grid_intermediate[x][col] == num:
+                return False
+
+        # Check if num exists in the 3x3 sub-matrix
+        startRow = row - (row % 3)
+        startCol = col - (col % 3)
+
+        for i in range(3):
+            for j in range(3):
+                if self.grid_intermediate[i + startRow][j + startCol] == num:
+                    return False
+
+        return True
+    
+    def solve_recursively(self, row, col):
+        # base case: Reached nth column of the last row
+        if row == 8 and col == 9:
+            return True
+
+        # If last column of the row go to the next row
+        if col == 9:
+            row += 1
+            col = 0
+
+        # If cell is already occupied then move forward
+        if self.grid_intermediate[row][col] != 0:
+            return self.solve_recursively(row, col + 1)
+
+        for num in range(1, 10):
+            # If it is safe to place num at current position
+            if self.is_valid_cell_value(row, col, num):
+                self.grid_intermediate[row][col] = num
+                if self.solve_recursively(row, col + 1):
+                    return True
+                self.grid_intermediate[row][col] = 0
+
+        return False
 
 
 def main(args):
@@ -531,14 +593,14 @@ def main(args):
     solution_gid = solver.solve()
     t1 = time.time()-t1
     t2 = time.time() 
-    solved = solver.is_sudoku_solved_2()
+    solved = solver.is_sudoku_solved()
     t2 = time.time()-t2
     print(f"Solution Grid:\n{sudoku_grid_to_string(solution_gid)}")
     print(f"The solution is {'correct' if solved else 'incorrect'}!")
-    print(f"Time to find the solution: {round(t1,3)}")
-    print(f"Time to check the solution: {round(t2,3)}")
+    print(f"Time to find the solution: {round(t1, 3)}")
+    print(f"Time to check the solution: {round(t2, 6)}")
 
-    if solver.unsolved_cells:
+    if not solved:
         print(f"Failed to solve {len(solver.unsolved_cells)} cells."
               "\nTo see possibilities of the unsolved cells view: \'outputs/unsolved_cells.txt\'")
         str_out = "Unsolved cells and possibilities:"
