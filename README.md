@@ -1,6 +1,6 @@
 # SUDOKU SOLVER
 
-This project is a Python-based solution developed to reliably solve Sudoku quizzes. The primary objective of the program is to solve all quizzes in the Sudoku dataset from [Kaggle](https://www.kaggle.com/datasets/bryanpark/sudoku?resource=download). The solver provides the ability to solve Sudoku quizzes from `.xlsx` files or images of the Sudoku grids taken from [sudoku.com](https://sudoku.com/). Images must contain only the Sudoku grid for the solver to work correctly with the image input. The solver has been able to solve quizzes catagorized as **Master**. The file at `./inputs/xlsx/evil.xlsx` is an example of such a quiz.
+This project is a Python-based solution developed to reliably solve Sudoku quizzes. The primary objective of the program is to solve all quizzes in the Sudoku dataset from [Kaggle](https://www.kaggle.com/datasets/bryanpark/sudoku?resource=download). The solver provides the ability to solve Sudoku quizzes from `.xlsx` files or images of the Sudoku grids taken from [sudoku.com](https://sudoku.com/). Images must contain only the Sudoku grid for the solver to work correctly with the image input. The solver has been able to solve quizzes catagorized as **Master**. The file at `./inputs/image/master.png` is an example of such a quiz. The required logic for the solver to solve quizzes catagorized as **Extreme** has not yet been implemented.
 
 ## SETUP
 
@@ -60,7 +60,7 @@ Sudoku quizzes can be generated with [this](https://www.ocf.berkeley.edu/~arel/s
 
 ## Future Plans
 
-1. Solve quizzes of 'evil' difficulty. Possible solution: recursion.
+1. Implement logic to solve quizzes of 'Extreme' difficulty. Possible solution: backtracking.
 2. Improve setup.py. 
 3. Speed up 'image-to-quiz' pre-processing by filtering out corner features more efficiently.
 
