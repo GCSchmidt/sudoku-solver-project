@@ -409,31 +409,6 @@ class Solver():
             f"\nREGIONS:{region_sets}")
         return True
 
-    def is_sudoku_solved_2(self):
-        """
-        Checks if solution is correct
-        Time complextity: 9*9 = C
-        Space complexity: 3*9*9 = C
-        """
-        # Check rows
-        for row in self.grid_intermediate:
-            if not np.array_equal(np.sort(row), np.arange(1, 10)):
-                return False
-
-        # Check columns
-        for col in self.grid_intermediate.T:  # Transpose to iterate over columns
-            if not np.array_equal(np.sort(col), np.arange(1, 10)):
-                return False
-
-        # Check regions
-        for i in range(0, 9, 3):
-            for j in range(0, 9, 3):
-                region = self.grid_intermediate[i:i+3, j:j+3].flatten()
-                if not np.array_equal(np.sort(region), np.arange(1, 10)):
-                    return False
-
-        return True
-
     def solve(self) -> np.ndarray:
         """
         Solves the initial grid.
