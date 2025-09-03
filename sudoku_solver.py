@@ -299,6 +299,13 @@ class Solver():
         """
         return not self.unsolved_cells      # if the dictionary is empty, the solution is complete
 
+    def get_values_within_regions(self, row, col) -> np.ndarray:
+        """Returns all the values within the region"""
+        start_row = row - (row % 3)
+        start_col = col - (col % 3)
+        region = self.grid_intermediate[start_row:start_row+3, start_col:start_col+3].flatten()
+        return region
+
     def get_ids_of_unsolved_cells(self):
         """Get the ids of rows, columns and regions with unsolved cells"""
         row_ids, col_ids, region_ids = set(), set(), set() 
@@ -475,59 +482,43 @@ class Solver():
                 logger.info(f"\nATTEMPTING TO SOLVE WITH BRUTE FORCE")
                 # use brute force to find solution
                 # needs to be optimized
-                self.solve_recursively(0, 0)
+                self.solve_recursively(0)
                 break
 
         return self.grid_intermediate
-    
-    ############################################
-    # functions for brute force solution 
-    # copied from https://www.geeksforgeeks.org/dsa/sudoku-backtracking-7/
-    # TODO increase efficiency
-    ############################################
-
-    def is_valid_cell_value(self, row, col, num):
+   
+    def is_valid_cell_value(self, row, col, num) -> bool:
         """Check to see if num can be placed at the cell at (row,col)."""
-        # Check if num exists in the row
-        for x in range(9):
-            if self.grid_intermediate[row][x] == num:
-                return False
 
-        # Check if num exists in the col
-        for x in range(9):
-            if self.grid_intermediate[x][col] == num:
-                return False
+        if num in self.grid_intermediate[row]:
+            return False
 
-        # Check if num exists in the 3x3 sub-matrix
-        startRow = row - (row % 3)
-        startCol = col - (col % 3)
+        if num in self.grid_intermediate.T[col]:
+            return False
 
-        for i in range(3):
-            for j in range(3):
-                if self.grid_intermediate[i + startRow][j + startCol] == num:
-                    return False
+        if num in self.get_values_within_regions(row, col):
+            return False
 
         return True
-    
-    def solve_recursively(self, row, col):
-        # base case: Reached nth column of the last row
-        if row == 8 and col == 9:
+
+    def solve_recursively(self, index: int):
+        """Fills in the last unscolved cells with brute force"""
+        # reached the last unsolved cell
+        if index == len(self.unsolved_cells):
             return True
 
-        # If last column of the row go to the next row
-        if col == 9:
-            row += 1
-            col = 0
-
+        row, col = list(self.unsolved_cells.keys())[index]
         # If cell is already occupied then move forward
         if self.grid_intermediate[row][col] != 0:
-            return self.solve_recursively(row, col + 1)
+            return self.solve_recursively(index+1)
 
-        for num in range(1, 10):
-            # If it is safe to place num at current position
+        pos = (row, col)
+        possibilities = self.unsolved_cells[pos]
+        for num in possibilities:
+            # see what possibility can be placed at this cell
             if self.is_valid_cell_value(row, col, num):
                 self.grid_intermediate[row][col] = num
-                if self.solve_recursively(row, col + 1):
+                if self.solve_recursively(index+1):
                     return True
                 self.grid_intermediate[row][col] = 0
 

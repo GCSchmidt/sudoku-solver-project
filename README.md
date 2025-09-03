@@ -60,7 +60,7 @@ Sudoku quizzes can be generated with [this](https://www.ocf.berkeley.edu/~arel/s
 
 ## Future Plans
 
-1. Improve efficiency of logic used to solve quizzes of 'Extreme' difficulty. 
+1. Get the solver to work for images of printed sudoku quizzes, e.g those found in magazines or newspapers.
 2. Improve setup.py. 
 3. Speed up 'image-to-quiz' pre-processing by filtering out corner features more efficiently.
 
