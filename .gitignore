@@ -2,3 +2,4 @@
 __pycache__
 logs
 outputs/*
+datasets/sudoku_kaggle_image_dataset
