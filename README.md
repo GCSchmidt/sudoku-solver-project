@@ -60,7 +60,7 @@ Sudoku quizzes can be generated with [this](https://www.ocf.berkeley.edu/~arel/s
 
 ## Future Plans
 
-1. Get the solver to work for images of printed sudoku quizzes, e.g those found in magazines or newspapers.
+1. Get the solver to work for images of printed sudoku quizzes, e.g those found in magazines or newspapers. The current plan is to use this [dataset](https://www.kaggle.com/datasets/mexwell/sudoku-image-dataset)
 2. Improve setup.py. 
 3. Speed up 'image-to-quiz' pre-processing by filtering out corner features more efficiently.
 
