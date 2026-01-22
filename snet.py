@@ -16,7 +16,7 @@ class SNET_Model():
 
     def __init__(self):
         self.model = load_model("./weights/SNET.keras", compile=False)
- 
+
     def predict_digits(self, images) -> list:
         """
         Takes a list of binary images of shape 32x32 to predict a digit present in each image.

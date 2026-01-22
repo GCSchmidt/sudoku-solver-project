@@ -176,6 +176,7 @@ def image_to_sudoku_quiz(f_path) -> str:
     """
     # load image and preprocess
     img_gray = cv.imread(f_path, cv.IMREAD_GRAYSCALE)
+    img_gray = cv.resize(img_gray, (500, 500), interpolation= cv.INTER_LINEAR)
     img_th = cv.adaptiveThreshold(img_gray, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 5, 3)
 
     # detect corner feature
