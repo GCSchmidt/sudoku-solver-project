@@ -1,6 +1,6 @@
 # SUDOKU SOLVER
 
-This project is a Python-based solution developed to reliably solve Sudoku quizzes. The primary objective of the program is to solve all quizzes in the Sudoku dataset from [Kaggle](https://www.kaggle.com/datasets/bryanpark/sudoku?resource=download). The solver provides the ability to solve Sudoku quizzes from `.xlsx` files or images of the Sudoku grids taken from [sudoku.com](https://sudoku.com/). Images must contain only the Sudoku grid for the solver to work correctly with the image input. The solver has been able to solve quizzes catagorized as **Extreme**. The file at `./inputs/image/extreme.png` is an example of such a quiz.
+This project is a Python-based solution developed to solve Sudoku quizzes. The primary objective of the program is to solve all quizzes from [this Sudoku dataset from Kaggle](https://www.kaggle.com/datasets/bryanpark/sudoku?resource=download). The solver provides the ability to solve Sudoku quizzes from `.xlsx` files or images of the Sudoku puzzle taken from [sudoku.com](https://sudoku.com/). Images must contain only the Sudoku puzzle for the solver to work correctly with the image input. The solver has been able to solve quizzes catagorized as **Extreme**. The file at `./inputs/image/extreme.png` is an example of such a quiz.
 
 ## SETUP
 
@@ -52,17 +52,14 @@ To verify the results, you can compare the expected and actual solutions in the 
 
 ## Solving 1 Million Quizzes
 
-The `sudoku_solver_solve_them_all.ipynb` jupyter notebook was used to solve all the quizzes in the dataset. All the quizzes were successfully solved!
-
-## To Generate Quizzes
-
-Sudoku quizzes can be generated with [this](https://www.ocf.berkeley.edu/~arel/sudoku/main.html).
+The `sudoku_solver_solve_them_all.ipynb` jupyter notebook was used to solve all 1 million quizzes from [this dataset](https://www.kaggle.com/datasets/bryanpark/sudoku?resource=download). All the quizzes were successfully solved!
 
 ## Future Plans
 
-1. Get the solver to work for images of printed sudoku quizzes, e.g those found in magazines or newspapers.
-2. Improve setup.py. 
-3. Speed up 'image-to-quiz' pre-processing by filtering out corner features more efficiently.
+1. Make this into a simple web app 
+2. Get the solver to work for images of printed sudoku quizzes, e.g those found in magazines or newspapers.
+3. Improve setup.py. 
+4. Speed up 'image-to-quiz' pre-processing by filtering out corner features more efficiently.
 
 ## Extra
 
