@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import numpy as np
 import pandas as pd
@@ -11,7 +12,9 @@ import cv2 as cv
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 
-import snet
+parent_dir = os.path.dirname(os.path.dirname(__file__))
+sys.path.insert(1, parent_dir)
+import models.snet as snet
 
 logger = logging.getLogger(__name__)
 logger.disabled = True

@@ -8,8 +8,10 @@ from sudoku_solver import Solver
 import multiprocessing as mp
 from functools import partial
 
-
-QUIZ_DF = pd.read_csv(r'datasets/sudoku.csv')
+parent_dir = os.path.dirname(os.path.dirname(__file__))
+dataset_dir = os.path.join(parent_dir, "datasets")
+output_dir = os.path.join(parent_dir, "outputs")
+QUIZ_DF = pd.read_csv(os.path.join(dataset_dir, "sudoku.csv"))
 
 
 def solve_quiz(quiz_num):
@@ -34,7 +36,8 @@ class TestSolver(unittest.TestCase):
         results_df = pd.DataFrame(columns=['id', 'expected_solution', 'actual_solution', 'correct'])
         quiz_num = 1_000
         _, _, _, quiz_result = solve_quiz(quiz_num)
-        results_df.to_csv(r'outputs/test_single_results.csv', index=False)
+        output_file = os.path.join(output_dir, "test_single_results.csv")
+        results_df.to_csv(output_file, index=False)
         print(f"\tThe solution of quiz {quiz_num} is {'correct' if quiz_result else 'incorrect'}!")
         self.assertTrue(quiz_result)
   
@@ -68,7 +71,8 @@ class TestSolver(unittest.TestCase):
 
         timer = time.time() - timer
         os.makedirs('outputs', exist_ok=True)
-        results_df.to_csv(r'outputs/test_1k_results.csv', index=False)
+        output_file = os.path.join(output_dir, "test_1k_results.csv")
+        results_df.to_csv(output_file, index=False)
         print(f"\tIt took {round(timer, 3)} seconds to solve {N} SUDOKU quizzes.")
         print(f"\tFrom {N} total quizzes, {passed_n} were correctly solved!")
         self.assertTrue(passed_n == N)
