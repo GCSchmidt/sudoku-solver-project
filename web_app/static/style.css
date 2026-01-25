@@ -23,6 +23,10 @@ a{
     color: #FF6B01;
 }
 
+td h2{
+    margin: -0.15em 0.15em -0.15em 0.15em;
+}
+
 #options{
     display: flex;
     flex-direction: row;
@@ -37,11 +41,14 @@ a{
     padding: 1em 0 2em 0;
 }
 
+#subtitle{
+    margin-top: -1em;
+}
+
 .title{
     max-width: fit-content;
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: -0.5em;
 }
 
 .option{
@@ -60,5 +67,5 @@ a{
 }
 
 .third-row{
-    padding: 1em 0 0 0;
+    padding: 0 0 1em 0;
 }
