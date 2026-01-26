@@ -490,10 +490,10 @@ class Solver():
                 break
 
         return self.grid_intermediate
-   
+
     def is_valid_cell_value(self, row, col, num) -> bool:
         """Check to see if num can be placed at the cell at (row,col)."""
-
+        
         if num in self.grid_intermediate[row]:
             return False
 
@@ -502,6 +502,20 @@ class Solver():
 
         if num in self.get_values_within_regions(row, col):
             return False
+
+        return True
+
+    def is_valid_intermediat_grid(self) -> bool:
+        """Check to see if the current grid is valid"""
+        for row in range(0, 9):
+            for col in range(0, 9):
+                value = self.grid_intermediate[row][col]
+                if value == 0:
+                    continue
+
+                valid = self.is_valid_cell_value(row, col, value)
+                if not valid:
+                    return False
 
         return True
 
