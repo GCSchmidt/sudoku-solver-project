@@ -9,124 +9,22 @@
 
 <div id="div-table">
 <table>
-    <tr>
-        <td><h2>{{ solution_str[0] }}</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-    </tr>
-    <tr>
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-    </tr>
-    <tr>
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row third-coll"><h2>3</h2></td>
-
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row third-coll"><h2>3</h2></td>
-
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row third-coll"><h2>3</h2></td>
-    </tr>
-    <tr>
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-    </tr>
-    <tr>
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-    </tr>
-    <tr>
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row third-coll"><h2>3</h2></td>
-
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row third-coll"><h2>3</h2></td>
-
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row third-coll"><h2>3</h2></td>
-    </tr>
-    <tr>
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-    </tr>
-    <tr>
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-
-        <td><h2>3</h2></td>
-        <td><h2>3</h2></td>
-        <td class="third-coll"><h2>3</h2></td>
-    </tr>
-    <tr>
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row third-coll"><h2>3</h2></td>
-
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row third-coll"><h2>3</h2></td>
-
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row"><h2>3</h2></td>
-        <td class="third-row third-coll"><h2>3</h2></td>
-    </tr>
-    
+    {% for row_index in range(0,9) %}
+        <tr>
+            {% for col_index in range(0,9) %}
+                {% if (col_index+1) % 3 == 0 %}
+                    {% if (row_index+1) % 3 == 0 %}
+                        <td class="third-row third-coll"><h2>{{ solution_arr[row_index][col_index] }}</h2></td>
+                    {% else %}
+                        <td class="third-coll"><h2>{{ solution_arr[row_index][col_index] }}</h2></td>
+                    {% endif %}
+                {% elif (row_index+1) % 3 == 0 %}
+                    <td class="third-row"><h2>{{ solution_arr[row_index][col_index] }}</h2></td>
+                {% else %}
+                    <td><h2>{{ solution_arr[row_index][col_index] }}</h2></td>
+                {% endif %}
+            {% endfor %}
+    {% endfor %}
 </table>
 </div>
 

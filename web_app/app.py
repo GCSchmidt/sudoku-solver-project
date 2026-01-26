@@ -14,8 +14,8 @@ def manual_input():
 
 @app.route('/solution')
 def solution():
-    solution_str = "563287712364515449364739413679388783371713317561552517842763311235389421938888645"
-    return render_template('solution.html', solution_str=solution_str)
+    solution_arr = [[i for i in range(1, 10)]] * 9  #
+    return render_template('solution.html', solution_arr=solution_arr)
 
 
 if __name__ == '__main__':
