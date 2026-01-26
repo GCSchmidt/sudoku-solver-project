@@ -5,7 +5,11 @@
 
 {% block body %}
 
+{% if solved %} 
 <h2 class="title">Solution</h2>
+{% else %}
+<h2 class="title">Could Not Solve Completely <br> Intermediate Solution Shown</h2>
+{% endif %}
 
 <div id="div-table">
 <table>
@@ -14,14 +18,14 @@
             {% for col_index in range(0,9) %}
                 {% if (col_index+1) % 3 == 0 %}
                     {% if (row_index+1) % 3 == 0 %}
-                        <td class="third-row third-coll"><h2>{{ solution_arr[row_index][col_index] }}</h2></td>
+                        <td class="third-row third-coll"><h2>{{ solution_grid[row_index][col_index] }}</h2></td>
                     {% else %}
-                        <td class="third-coll"><h2>{{ solution_arr[row_index][col_index] }}</h2></td>
+                        <td class="third-coll"><h2>{{ solution_grid[row_index][col_index] }}</h2></td>
                     {% endif %}
                 {% elif (row_index+1) % 3 == 0 %}
-                    <td class="third-row"><h2>{{ solution_arr[row_index][col_index] }}</h2></td>
+                    <td class="third-row"><h2>{{ solution_grid[row_index][col_index] }}</h2></td>
                 {% else %}
-                    <td><h2>{{ solution_arr[row_index][col_index] }}</h2></td>
+                    <td><h2>{{ solution_grid[row_index][col_index] }}</h2></td>
                 {% endif %}
             {% endfor %}
     {% endfor %}
