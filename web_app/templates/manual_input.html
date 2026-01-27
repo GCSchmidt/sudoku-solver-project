@@ -14,20 +14,41 @@
         <tr>
             {% for col_index in range(0,9) %}
                 {% set cel_index = row_index * 9 + col_index %}
+                {% set selected_value = 0 %}
+                {% if preset_cell_values is defined %}
+                    {% set selected_value = preset_cell_values[cel_index] %}
+                {% endif %} 
+                
                 {% if (col_index+1) % 3 == 0 %}
                     {% if (row_index+1) % 3 == 0 %}
                         <td class="third-row third-coll">
                             <select name="cell_{{ cel_index }}">
                                 {% for cell_val in range(10) %}
-                                    <option value="{{ cell_val }}">{{ cell_val }}</option>
-                                {% endfor %}                            
+                                    {% if cell_val|string == selected_value %}
+                                        <option value="{{ cell_val }}" selected>
+                                            {{ cell_val }}
+                                        </option>
+                                    {% else %}
+                                        <option value="{{ cell_val }}">
+                                            {{ cell_val }}
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}                        
                             </select>
                         </td>
                     {% else %}
                         <td class="third-coll">
                             <select name="cell_{{ cel_index }}">
                                 {% for cell_val in range(10) %}
-                                    <option value="{{ cell_val }}">{{ cell_val }}</option>
+                                    {% if cell_val|string == selected_value %}
+                                        <option value="{{ cell_val }}" selected>
+                                            {{ cell_val }}
+                                        </option>
+                                    {% else %}
+                                        <option value="{{ cell_val }}">
+                                            {{ cell_val }}
+                                        </option>
+                                    {% endif %}
                                 {% endfor %}                            
                             </select>
                         </td>
@@ -36,7 +57,15 @@
                     <td class="third-row">
                         <select name="cell_{{ cel_index }}">
                             {% for cell_val in range(10) %}
-                                <option value="{{ cell_val }}">{{ cell_val }}</option>
+                                    {% if cell_val|string == selected_value %}
+                                        <option value="{{ cell_val }}" selected>
+                                            {{ cell_val }}
+                                        </option>
+                                    {% else %}
+                                        <option value="{{ cell_val }}">
+                                            {{ cell_val }}
+                                        </option>
+                                    {% endif %}
                             {% endfor %}                            
                         </select>
                     </td>        
@@ -44,7 +73,15 @@
                     <td>
                         <select name="cell_{{ cel_index }}">
                             {% for cell_val in range(10) %}
-                                <option value="{{ cell_val }}">{{ cell_val }}</option>
+                                {% if cell_val|string == selected_value %}
+                                    <option value="{{ cell_val }}" selected>
+                                        {{ cell_val }}
+                                    </option>
+                                {% else %}
+                                    <option value="{{ cell_val }}">
+                                        {{ cell_val }}
+                                    </option>
+                                {% endif %}
                             {% endfor %}                            
                         </select>
                     </td>  

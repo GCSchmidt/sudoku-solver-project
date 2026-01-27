@@ -14,7 +14,6 @@ def parse_and_validate_grid(cell_values: list[str]) -> Tuple[sudoku_solver.Solve
     solver = sudoku_solver.Solver(initial_grid)
     valid_grid = solver.is_valid_intermediat_grid()
     string_grid = sudoku_solver.sudoku_grid_to_string(initial_grid)
-    print(string_grid)
     if not valid_grid:
         return None, "Invalid Sudoku Quiz was Submitted. Try Again."
 
@@ -45,17 +44,18 @@ def solution_post():
         return render_template(
             'manual_input.html',
             error=error,
+            preset_cell_values=cell_values
             )
-    
+
     cell_grid = solver.grid_intermediate
-    
+
     string_grid = sudoku_solver.sudoku_grid_to_string(cell_grid)
-    print(string_grid)
 
     solution_grid = solver.solve()
     solved = solver.is_sudoku_solved()
 
     return render_template('solution.html', solution_grid=solution_grid, solved=solved)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
