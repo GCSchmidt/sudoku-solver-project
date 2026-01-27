@@ -198,6 +198,13 @@ def image_to_sudoku_quiz(f_path) -> str:
     return quiz_str_to_grid(raw_string)
 
 
+def check_for_duplicate(arr: np.ndarray) -> bool:
+    """Checks to see if there is a duplicte in numpy array. 0s dont count. True if duplicate.
+    """
+    arr_reduced = arr[arr != 0]
+    return len(np.unique(arr_reduced)) != len(arr_reduced)
+
+
 # Classes
 
 
@@ -507,15 +514,31 @@ class Solver():
 
     def is_valid_intermediat_grid(self) -> bool:
         """Check to see if the current grid is valid"""
-        for row in range(0, 9):
-            for col in range(0, 9):
-                value = self.grid_intermediate[row][col]
-                if value == 0:
-                    continue
-
-                valid = self.is_valid_cell_value(row, col, value)
-                if not valid:
+        solved_cell_positions = np.argwhere(self.grid_intermediate == 0)
+        filled_rows = set([]) 
+        filled_cols = set([])
+        filled_regions = set([])
+        for (row_index, col_index) in solved_cell_positions:
+            if row_index not in filled_rows:
+                check = check_for_duplicate(self.grid_intermediate[row_index])
+                if check:
                     return False
+                filled_rows.add(row_index)
+
+            if col_index not in filled_cols:
+                check = check_for_duplicate(self.grid_intermediate[:, col_index])
+                if check:
+                    return False
+                filled_cols.add(col_index)
+
+            region_index = row_and_col_to_region(row_index, col_index)
+            if region_index not in filled_regions:
+                region = self.get_values_within_regions(row_index, col_index)
+                check = check_for_duplicate(region)
+                if check:
+                    return False
+
+                filled_regions.add(region_index)
 
         return True
 
