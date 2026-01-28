@@ -7,6 +7,10 @@ parent_dir = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(1, parent_dir)
 import scripts.sudoku_solver as sudoku_solver
 
+ALLOWED_EXTENSIONS = {'png', 'jpeg'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def parse_and_validate_grid(cell_values: list[str]) -> Tuple[sudoku_solver.Solver, str]:
     quiz_str = "".join(cell_values)
@@ -21,6 +25,8 @@ def parse_and_validate_grid(cell_values: list[str]) -> Tuple[sudoku_solver.Solve
 
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'uploads'
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 
 @app.route('/')
@@ -33,6 +39,26 @@ def manual_input():
     error = request.args.get('error')
     return render_template('manual_input.html', error=error)
 
+@app.route('/manual_input', methods=['POST'])
+def manual_input_post():
+    error = None
+    file = request.files['file']
+    filename = file.filename
+    if allowed_file(file.filename):
+        # TODO always replace file
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename)) 
+    else:
+        error = "Invalid File was Uploaded"
+        return render_template('manual_input.html', error=error)
+    filepath = os.path.join(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    grid= sudoku_solver.image_to_sudoku_quiz(filepath)
+    print(grid)
+    cell_values = "".join([str(val) for val in grid.flatten()])
+    return render_template(
+        'manual_input.html',
+        error=error,
+        preset_cell_values=cell_values
+    )
 
 @app.route('/solution', methods=['POST'])
 def solution_post():
@@ -46,11 +72,7 @@ def solution_post():
             error=error,
             preset_cell_values=cell_values
             )
-
-    cell_grid = solver.grid_intermediate
-
-    string_grid = sudoku_solver.sudoku_grid_to_string(cell_grid)
-
+    
     solution_grid = solver.solve()
     solved = solver.is_sudoku_solved()
 
