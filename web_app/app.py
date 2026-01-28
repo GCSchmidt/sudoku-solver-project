@@ -9,8 +9,14 @@ import scripts.sudoku_solver as sudoku_solver
 
 ALLOWED_EXTENSIONS = {'png', 'jpeg'}
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def allowed_file(filename) -> Tuple[bool, str] | None:
+    if '.' in filename:
+        file_extension = filename.rsplit('.', 1)[1].lower()
+    else: 
+        return None
+    
+    return file_extension in ALLOWED_EXTENSIONS, file_extension
 
 def parse_and_validate_grid(cell_values: list[str]) -> Tuple[sudoku_solver.Solver, str]:
     quiz_str = "".join(cell_values)
@@ -44,15 +50,16 @@ def manual_input_post():
     error = None
     file = request.files['file']
     filename = file.filename
-    if allowed_file(file.filename):
-        # TODO always replace file
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename)) 
+    file_check = allowed_file(file.filename)
+    if file_check:
+        _, file_extension = file_check
+        filename = f"image_file.{file_extension}"
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     else:
         error = "Invalid File was Uploaded"
         return render_template('manual_input.html', error=error)
     filepath = os.path.join(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     grid= sudoku_solver.image_to_sudoku_quiz(filepath)
-    print(grid)
     cell_values = "".join([str(val) for val in grid.flatten()])
     return render_template(
         'manual_input.html',
