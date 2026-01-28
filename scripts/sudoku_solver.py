@@ -141,7 +141,7 @@ def get_sqr_sub_image(img, row: int, col: int, vert_lines: list, hori_lines: lis
     y_min = hori_lines[row]
     y_max = hori_lines[row+1]
     sqr_sub_image = img[y_min:y_max, x_min:x_max]
-    cropped_image = crop_img(sqr_sub_image, 0.8)
+    cropped_image = crop_img(sqr_sub_image, 0.7)
     img_blur = cv.GaussianBlur(cropped_image, (11, 11),0)
     img_th = cv.adaptiveThreshold(img_blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 5, 1)
     resized_img = cv.resize(img_th, (32, 32), interpolation=cv.INTER_NEAREST)
