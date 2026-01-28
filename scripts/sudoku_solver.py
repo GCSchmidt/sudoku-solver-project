@@ -173,7 +173,7 @@ def image_to_string(img, vertical_lines_coords, horizontal_lines_coords):
     return output_str
 
 
-def image_to_sudoku_quiz(f_path) -> str:
+def image_to_sudoku_quiz(f_path) -> np.ndarray:
     """
     Generates a sudoku quiz grid from an image. 
     """
