@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import numpy as np
 import pandas as pd
@@ -11,7 +12,9 @@ import cv2 as cv
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 
-import snet
+parent_dir = os.path.dirname(os.path.dirname(__file__))
+sys.path.insert(1, parent_dir)
+import models.snet as snet
 
 logger = logging.getLogger(__name__)
 logger.disabled = True
@@ -138,7 +141,7 @@ def get_sqr_sub_image(img, row: int, col: int, vert_lines: list, hori_lines: lis
     y_min = hori_lines[row]
     y_max = hori_lines[row+1]
     sqr_sub_image = img[y_min:y_max, x_min:x_max]
-    cropped_image = crop_img(sqr_sub_image, 0.8)
+    cropped_image = crop_img(sqr_sub_image, 0.7)
     img_blur = cv.GaussianBlur(cropped_image, (11, 11),0)
     img_th = cv.adaptiveThreshold(img_blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 5, 1)
     resized_img = cv.resize(img_th, (32, 32), interpolation=cv.INTER_NEAREST)
@@ -170,7 +173,7 @@ def image_to_string(img, vertical_lines_coords, horizontal_lines_coords):
     return output_str
 
 
-def image_to_sudoku_quiz(f_path) -> str:
+def image_to_sudoku_quiz(f_path) -> np.ndarray:
     """
     Generates a sudoku quiz grid from an image. 
     """
@@ -193,6 +196,13 @@ def image_to_sudoku_quiz(f_path) -> str:
     raw_string = image_to_string(img_th, vertical_lines_coords, horizontal_lines_coords)
 
     return quiz_str_to_grid(raw_string)
+
+
+def check_for_duplicate(arr: np.ndarray) -> bool:
+    """Checks to see if there is a duplicte in numpy array. 0s dont count. True if duplicate.
+    """
+    arr_reduced = arr[arr != 0]
+    return len(np.unique(arr_reduced)) != len(arr_reduced)
 
 
 # Classes
@@ -487,10 +497,10 @@ class Solver():
                 break
 
         return self.grid_intermediate
-   
+
     def is_valid_cell_value(self, row, col, num) -> bool:
         """Check to see if num can be placed at the cell at (row,col)."""
-
+        
         if num in self.grid_intermediate[row]:
             return False
 
@@ -499,6 +509,36 @@ class Solver():
 
         if num in self.get_values_within_regions(row, col):
             return False
+
+        return True
+
+    def is_valid_intermediat_grid(self) -> bool:
+        """Check to see if the current grid is valid"""
+        solved_cell_positions = np.argwhere(self.grid_intermediate == 0)
+        filled_rows = set([]) 
+        filled_cols = set([])
+        filled_regions = set([])
+        for (row_index, col_index) in solved_cell_positions:
+            if row_index not in filled_rows:
+                check = check_for_duplicate(self.grid_intermediate[row_index])
+                if check:
+                    return False
+                filled_rows.add(row_index)
+
+            if col_index not in filled_cols:
+                check = check_for_duplicate(self.grid_intermediate[:, col_index])
+                if check:
+                    return False
+                filled_cols.add(col_index)
+
+            region_index = row_and_col_to_region(row_index, col_index)
+            if region_index not in filled_regions:
+                region = self.get_values_within_regions(row_index, col_index)
+                check = check_for_duplicate(region)
+                if check:
+                    return False
+
+                filled_regions.add(region_index)
 
         return True
 

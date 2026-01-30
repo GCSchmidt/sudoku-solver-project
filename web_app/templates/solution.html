@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block head %}
+<title>Solution</title>
+{% endblock %}
+
+{% block body %}
+
+{% if solved %} 
+<h2 class="title">Solution</h2>
+{% else %}
+<h2 class="title">Could Not Solve Completely <br> Intermediate Solution Shown</h2>
+{% endif %}
+
+<div id="div-table">
+<table>
+    {% for row_index in range(0,9) %}
+        <tr>
+            {% for col_index in range(0,9) %}
+                {% if (col_index+1) % 3 == 0 %}
+                    {% if (row_index+1) % 3 == 0 %}
+                        <td class="third-row third-coll"><h2>{{ solution_grid[row_index][col_index] }}</h2></td>
+                    {% else %}
+                        <td class="third-coll"><h2>{{ solution_grid[row_index][col_index] }}</h2></td>
+                    {% endif %}
+                {% elif (row_index+1) % 3 == 0 %}
+                    <td class="third-row"><h2>{{ solution_grid[row_index][col_index] }}</h2></td>
+                {% else %}
+                    <td><h2>{{ solution_grid[row_index][col_index] }}</h2></td>
+                {% endif %}
+            {% endfor %}
+    {% endfor %}
+</table>
+</div>
+
+
+<div id="options">
+        <button onclick="location.href='/'" type="button">Back to Home</button>
+</div>
+{% endblock %}
