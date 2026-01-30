@@ -1,0 +1,23 @@
+
+{% extends 'base.html' %}
+{% block head %}
+<title>Index</title>
+{% endblock %}
+
+{% block body %}
+<div id="options">
+    <div id="option-1" class="option">
+        <h2>Solve Sudoku From <a href="https://sudoku.com">sudoku.com</a> <br> by Uploading a Screenshot</h2>
+        <form method="POST" action="{{ url_for('manual_input_post') }}" enctype="multipart/form-data">
+        <div class="option">
+            <input type = "file" name = "file"/>
+            <button id="upload-image" type="submit">Sumbit Image</button>
+        </div>
+        </form>
+    </div> 
+    <div id="option-2" class="option">
+        <h2>Solve Sudoku From Manual Input</h2>
+        <button id="manual-input" onclick="location.href='/manual_input'" type="button">Manually Input</button>
+    </div> 
+</div>
+{% endblock %}

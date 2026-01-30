@@ -3,3 +3,4 @@ __pycache__
 logs
 outputs/*
 datasets/*.csv
+uploads
