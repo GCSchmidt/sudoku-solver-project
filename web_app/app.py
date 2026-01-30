@@ -33,7 +33,7 @@ def parse_and_validate_grid(cell_values: list[str]) -> Tuple[sudoku_solver.Solve
 
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 1 * 1000 * 1000  # 1MB
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
