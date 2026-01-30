@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import numpy as np
 import pandas as pd
@@ -11,7 +12,9 @@ import cv2 as cv
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 
-import snet
+parent_dir = os.path.dirname(os.path.dirname(__file__))
+sys.path.insert(1, parent_dir)
+import models.snet as snet
 
 logger = logging.getLogger(__name__)
 logger.disabled = True
@@ -28,13 +31,13 @@ def load_quiz_from_dataset(
     Load sudoku quiz and its solution from dataset located at ./datasets/sudoku.csv
     (zero-indexed).
     """
-    quiz_str = quiz_df.loc[quiz_numnber]['quizzes']
+    quiz_str = str(quiz_df.loc[quiz_numnber]['quizzes'])
     solution_str = quiz_df.loc[quiz_numnber]['solutions']
     quiz_arr = quiz_str_to_grid(quiz_str)
     return quiz_arr, solution_str
 
 
-def quiz_str_to_grid(quiz_str: str) -> np.array:
+def quiz_str_to_grid(quiz_str: str) -> np.ndarray:
     """
     Converts a sudoku quiz in the string format of the dataset into a np.array
     """
@@ -43,7 +46,7 @@ def quiz_str_to_grid(quiz_str: str) -> np.array:
     return quiz_arr
 
 
-def read_xlsx_file(quiz_file: str) -> np.array:
+def read_xlsx_file(quiz_file: str) -> np.ndarray:
     """
     Loads quiz from .xlsx file to np array. 
     """
@@ -63,7 +66,7 @@ def row_and_col_to_region(row: int, col: int) -> int:
     return (row // 3) * 3 + (col // 3)
 
 
-def sudoku_grid_to_string(grid: np.array) -> str:
+def sudoku_grid_to_string(grid: np.ndarray) -> str:
     """
     Creates a nice string representation of a sudoku grid.
     """
@@ -107,13 +110,13 @@ def get_coords_of_lines(corner_coords):
     """
     Determines the coordiantes of the lines within the images from Harris corner coordianates.
     """
-    corner_coords.sort(key=lambda coord: coord[0]) # sort based on y coordinate
-    vertical_lines_coords = [int(coord[1]) for coord in corner_coords[0:10]] # get the 10 smallest y coordinates
-    vertical_lines_coords.sort() # the x coordiantes of the vertical lines
+    corner_coords.sort(key=lambda coord: coord[0])  # sort based on y coordinate
+    vertical_lines_coords = [int(coord[1]) for coord in corner_coords[0:10]]  # get the 10 smallest y coordinates
+    vertical_lines_coords.sort()  # the x coordiantes of the vertical lines
 
-    corner_coords.sort(key=lambda coord: coord[1]) # sort based on x coordinate
-    horizontal_lines_coords = [int(coord[0]) for coord in corner_coords[0:10]] # get the 10 smallest x coordinates
-    horizontal_lines_coords.sort() # the y coordiantes of the horizontal lines, y = horizontal_lines
+    corner_coords.sort(key=lambda coord: coord[1])  # sort based on x coordinate
+    horizontal_lines_coords = [int(coord[0]) for coord in corner_coords[0:10]]  # get the 10 smallest x coordinates
+    horizontal_lines_coords.sort()  # the y coordiantes of the horizontal lines, y = horizontal_lines
     return vertical_lines_coords, horizontal_lines_coords
 
 
@@ -138,7 +141,7 @@ def get_sqr_sub_image(img, row: int, col: int, vert_lines: list, hori_lines: lis
     y_min = hori_lines[row]
     y_max = hori_lines[row+1]
     sqr_sub_image = img[y_min:y_max, x_min:x_max]
-    cropped_image = crop_img(sqr_sub_image, 0.8)
+    cropped_image = crop_img(sqr_sub_image, 0.7)
     img_blur = cv.GaussianBlur(cropped_image, (11, 11),0)
     img_th = cv.adaptiveThreshold(img_blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 5, 1)
     resized_img = cv.resize(img_th, (32, 32), interpolation=cv.INTER_NEAREST)
@@ -170,12 +173,13 @@ def image_to_string(img, vertical_lines_coords, horizontal_lines_coords):
     return output_str
 
 
-def image_to_sudoku_quiz(f_path) -> str:
+def image_to_sudoku_quiz(f_path) -> np.ndarray:
     """
     Generates a sudoku quiz grid from an image. 
     """
     # load image and preprocess
     img_gray = cv.imread(f_path, cv.IMREAD_GRAYSCALE)
+    img_gray = cv.resize(img_gray, (500, 500), interpolation= cv.INTER_LINEAR)
     img_th = cv.adaptiveThreshold(img_gray, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 5, 3)
 
     # detect corner feature
@@ -194,6 +198,13 @@ def image_to_sudoku_quiz(f_path) -> str:
     return quiz_str_to_grid(raw_string)
 
 
+def check_for_duplicate(arr: np.ndarray) -> bool:
+    """Checks to see if there is a duplicte in numpy array. 0s dont count. True if duplicate.
+    """
+    arr_reduced = arr[arr != 0]
+    return len(np.unique(arr_reduced)) != len(arr_reduced)
+
+
 # Classes
 
 
@@ -207,7 +218,7 @@ class Solver():
             self.unsolved_cells[pos]  # create dict entries with defaut values
         self.try_hard = True
 
-    def check_if_only(self, possibilities: np.array, positions: list) -> np.array:
+    def check_if_only(self, possibilities: np.ndarray, positions: list) -> np.ndarray:
         """
         Checks to see if posibilities contains a solution/number,
         that is not a possibility of the unsolved cells at the given positions.
@@ -299,13 +310,86 @@ class Solver():
         """
         return not self.unsolved_cells      # if the dictionary is empty, the solution is complete
 
-    def solve_cell(self, position, possibilities, solved_cells):
+    def get_values_within_regions(self, row, col) -> np.ndarray:
+        """Returns all the values within the region"""
+        start_row = row - (row % 3)
+        start_col = col - (col % 3)
+        region = self.grid_intermediate[start_row:start_row+3, start_col:start_col+3].flatten()
+        return region
+
+    def get_ids_of_unsolved_cells(self):
+        """Get the ids of rows, columns and regions with unsolved cells"""
+        row_ids, col_ids, region_ids = set(), set(), set() 
+
+        for pos in self.unsolved_cells:
+            row_ids.add(pos[0])
+            col_ids.add(pos[1])
+            row_ids.add((pos[0] // 3) * 3 + (pos[1] // 3))
+
+        return row_ids, col_ids, region_ids
+
+    def get_unsolved_positions_in_row(self, row_id) -> list:
+        """Get a list of postions of unsolved cells in a row"""
+        positions = [pos for pos in self.unsolved_cells if pos[0] == row_id]
+        return positions
+    
+    def get_unsolved_positions_in_col(self, col_id) -> list:
+        """Get a list of postions of unsolved cells in a row"""
+        positions = [pos for pos in self.unsolved_cells if pos[1] == col_id]
+        return positions
+
+    def get_unsolved_positions_in_region(self, reg_id) -> list:
+        """Get a list of postions of unsolved cells in a region
+        (top-left=0, bottom-right=8)"""
+        positions = [pos for pos in self.unsolved_cells if ((pos[0] // 3) * 3 + (pos[1] // 3) == reg_id)]
+        return positions
+
+    def check_naked_pairs(self, positions: list):
+
+        if len(positions) <= 2:
+            return
+
+        pair_count = defaultdict(int)
+
+        for pos in positions:
+            possibilities = self.unsolved_cells[pos]
+            if len(possibilities) == 2:
+                pair_count[tuple(possibilities)] += 1
+            
+        # only pairs are valid
+        pair_count = {key: val for key, val in pair_count.items() if val==2}
+
+        if not pair_count:
+            # no pairs found
+            return
+        
+        for pos in positions:
+            possibilities = self.unsolved_cells[pos]
+            logger.info(f"\nTrying to solve cell @ {pos}\n\tCurrent possibilities: {possibilities}")
+            if tuple(self.unsolved_cells[pos]) in pair_count:
+                continue
+            else:
+                for pair in pair_count:
+                    # reduce the possibilties to exclude the naked pairs
+                    possibilities = self.unsolved_cells[pos]
+                    possibilities = np.array([p for p in possibilities if p not in pair]).flatten()
+                    self.unsolved_cells[pos] = possibilities
+                    logger.info(f"\n\tPossibilities after checkig naked pairs: {self.unsolved_cells[pos]}")
+                    if len(possibilities) == 1:
+                        # solution found by reducing with naked pairs
+                        self.solve_cell(pos, possibilities)
+                        self.unsolved_cells.pop(pos, None)
+                        break
+        return
+
+    def solve_cell(self, position, possibilities, solved_cells=None):
         self.grid_intermediate[position[0]][position[1]] = possibilities[0] # save solution to grid
-        solved_cells.append(position) # add key/position to list that we use to remove unsolved cell entry 
+        if solved_cells is not None:
+            solved_cells.append(position) # add key/position to list that we use to remove unsolved cell entry 
         logger.info(f"\nSOLVED!!!")
         return
 
-    def is_sudoku_solved_1(self):
+    def is_sudoku_solved(self):
         """
         Checks if solution is correct
         Time complextity: 9*9 = C
@@ -325,7 +409,9 @@ class Solver():
                     logger.info(f"INVALID NUMBER FOUND @{row,col}")
                     return False
                 # if value already in row/col/region
-                if cell_value in row_sets[row] or cell_value in col_sets[col] or cell_value in region_sets[row_and_col_to_region(row, col)]:
+                if ((cell_value in row_sets[row]) 
+                        or (cell_value in col_sets[col]) 
+                        or (cell_value in region_sets[row_and_col_to_region(row, col)])):
                     logger.info(f"DUPLICATE FOUND @{row,col}")
                     return False
                 
@@ -333,42 +419,23 @@ class Solver():
                 row_sets[row].add(cell_value)
                 col_sets[col].add(cell_value)
                 region_sets[row_and_col_to_region(row, col)].add(cell_value)
-                logger.info(f'{row_sets}\n{"-"*100}\n{col_sets}\n{"-"*100}\n{region_sets}')
         
-        logger.info(f'{row_sets}\n{"-"*100}\n{col_sets}\n{"-"*100}\n{region_sets}')
+        logger.info(
+            f"\nSets used to verify validity of solution:"
+            f"\nROWS: {row_sets}\n{"-"*100}"
+            f"\nCOLS:{col_sets}\n{"-"*100}"
+            f"\nREGIONS:{region_sets}")
         return True
 
-    def is_sudoku_solved_2(self):
-        """
-        Checks if solution is correct
-        Time complextity: 9*9 = C
-        Space complexity: 3*9*9 = C
-        """
-        # Check rows
-        for row in self.grid_intermediate:
-            if not np.array_equal(np.sort(row), np.arange(1, 10)):
-                return False
-
-        # Check columns
-        for col in self.grid_intermediate.T:  # Transpose to iterate over columns
-            if not np.array_equal(np.sort(col), np.arange(1, 10)):
-                return False
-
-        # Check regions
-        for i in range(0, 9, 3):
-            for j in range(0, 9, 3):
-                region = self.grid_intermediate[i:i+3, j:j+3].flatten()
-                if not np.array_equal(np.sort(region), np.arange(1, 10)):
-                    return False
-
-        return True
-
-    def solve(self) -> np.array:
+    def solve(self) -> np.ndarray:
         """
         Solves the initial grid.
         """
         # TODO check other unsolved cells in row, and collumns and boxes to figure out correct value
-        repeated = 0
+        
+        loops_with_no_update = 0
+        n_unsolved_cells = len(self.unsolved_cells)
+
         while not self.check_complete():
             solved_cells = []
             for position, possibilities in self.unsolved_cells.items():
@@ -404,14 +471,99 @@ class Solver():
 
             for position in solved_cells:
                 self.unsolved_cells.pop(position, None)
+            
+            if len(self.unsolved_cells) < n_unsolved_cells:
+                n_unsolved_cells = len(self.unsolved_cells)
+                loops_with_no_update = 0
+            else:
+                loops_with_no_update += 1
+                # no changes were made, try with naked pairs
+                row_ids, col_ids, region_ids = self.get_ids_of_unsolved_cells()
+                for i in row_ids:
+                    self.check_naked_pairs(self.get_unsolved_positions_in_row(i))
+                for i in col_ids:
+                    self.check_naked_pairs(self.get_unsolved_positions_in_col(i))
+                for i in region_ids:
+                    self.check_naked_pairs(self.get_unsolved_positions_in_region(i))
 
-            repeated += 1
-            logger.info(f"\nREPEATED LOOPS: {repeated}")
-            if repeated >= 20:
+            logger.info(f"\nNUMBER OF LOOPS WITH NO UPDATE: {loops_with_no_update}")
+            
+            if loops_with_no_update >= 2:
                 logger.info(f"\nTOO MANY LOOPS")
+                logger.info(f"\nATTEMPTING TO SOLVE WITH BRUTE FORCE")
+                # use brute force to find solution
+                # needs to be optimized
+                self.solve_recursively(0)
                 break
 
         return self.grid_intermediate
+
+    def is_valid_cell_value(self, row, col, num) -> bool:
+        """Check to see if num can be placed at the cell at (row,col)."""
+        
+        if num in self.grid_intermediate[row]:
+            return False
+
+        if num in self.grid_intermediate.T[col]:
+            return False
+
+        if num in self.get_values_within_regions(row, col):
+            return False
+
+        return True
+
+    def is_valid_intermediat_grid(self) -> bool:
+        """Check to see if the current grid is valid"""
+        solved_cell_positions = np.argwhere(self.grid_intermediate == 0)
+        filled_rows = set([]) 
+        filled_cols = set([])
+        filled_regions = set([])
+        for (row_index, col_index) in solved_cell_positions:
+            if row_index not in filled_rows:
+                check = check_for_duplicate(self.grid_intermediate[row_index])
+                if check:
+                    return False
+                filled_rows.add(row_index)
+
+            if col_index not in filled_cols:
+                check = check_for_duplicate(self.grid_intermediate[:, col_index])
+                if check:
+                    return False
+                filled_cols.add(col_index)
+
+            region_index = row_and_col_to_region(row_index, col_index)
+            if region_index not in filled_regions:
+                region = self.get_values_within_regions(row_index, col_index)
+                check = check_for_duplicate(region)
+                if check:
+                    return False
+
+                filled_regions.add(region_index)
+
+        return True
+
+    def solve_recursively(self, index: int):
+        """Fills in the last unscolved cells with brute force"""
+        # reached the last unsolved cell
+        if index == len(self.unsolved_cells):
+            return True
+
+        row, col = list(self.unsolved_cells.keys())[index]
+        # If cell is already occupied then move forward
+        if self.grid_intermediate[row][col] != 0:
+            return self.solve_recursively(index+1)
+
+        pos = (row, col)
+        possibilities = self.unsolved_cells[pos]
+        for num in possibilities:
+            # see what possibility can be placed at this cell
+            if self.is_valid_cell_value(row, col, num):
+                self.grid_intermediate[row][col] = num
+                if self.solve_recursively(index+1):
+                    return True
+                self.grid_intermediate[row][col] = 0
+
+        return False
 
 
 def main(args):
@@ -448,14 +600,14 @@ def main(args):
     solution_gid = solver.solve()
     t1 = time.time()-t1
     t2 = time.time() 
-    solved = solver.is_sudoku_solved_2()
+    solved = solver.is_sudoku_solved()
     t2 = time.time()-t2
     print(f"Solution Grid:\n{sudoku_grid_to_string(solution_gid)}")
     print(f"The solution is {'correct' if solved else 'incorrect'}!")
-    print(f"Time to find the solution: {round(t1,3)}")
-    print(f"Time to check the solution: {round(t2,3)}")
+    print(f"Time to find the solution: {round(t1, 3)}")
+    print(f"Time to check the solution: {round(t2, 6)}")
 
-    if solver.unsolved_cells:
+    if not solved:
         print(f"Failed to solve {len(solver.unsolved_cells)} cells."
               "\nTo see possibilities of the unsolved cells view: \'outputs/unsolved_cells.txt\'")
         str_out = "Unsolved cells and possibilities:"

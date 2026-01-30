@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
@@ -15,8 +16,9 @@ def prep_model_input(img) -> np.array:
 class SNET_Model():
 
     def __init__(self):
-        self.model = load_model("./weights/SNET.keras", compile=False)
- 
+        model_path = os.path.join(os.path.dirname(__file__), "weights/SNET.keras")
+        self.model = load_model(model_path, compile=False)
+
     def predict_digits(self, images) -> list:
         """
         Takes a list of binary images of shape 32x32 to predict a digit present in each image.
