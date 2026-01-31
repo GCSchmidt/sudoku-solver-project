@@ -20,6 +20,7 @@ import models.snet as snet
 logger = logging.getLogger(__name__)
 logger.disabled = True
 digit_clf = snet.SNET_Model()
+logger_dir = os.path.join(parent_dir, "logs")
 
 # Helper Functions
 
@@ -587,8 +588,10 @@ def main(args):
     quiz_file, log = args.quiz_file, args.log
 
     if log:
-        os.makedirs('logs', exist_ok=True)
-        logging.basicConfig(filename=r'./logs/ss.log',
+        
+        os.makedirs(logger_dir, exist_ok=True)
+        logger_file = os.path.join(logger_dir, "ss.log")
+        logging.basicConfig(filename=logger_file,
                             filemode='w',
                             level=logging.INFO)
         logger.disabled = False
