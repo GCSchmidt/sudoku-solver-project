@@ -1,6 +1,7 @@
 import os
 import time
 import random
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -21,6 +22,7 @@ def solve_quiz(quiz_num, mode):
     global QUIZ_DF
     # load quiz and solution
     quiz, expected_solution = ss.load_quiz_from_dataset(QUIZ_DF, quiz_num)
+    n_zeros = np.count_nonzero(quiz == 0)
     solver = Solver(quiz)
     solver.mode = mode
     start = time.perf_counter()
@@ -28,7 +30,7 @@ def solve_quiz(quiz_num, mode):
     elapsed = time.perf_counter() - start
     actual_solution_str = "".join([str(num) for num in actual_solution_array.flatten()])
     quiz_result = (expected_solution == actual_solution_str)
-    return quiz_num, expected_solution, actual_solution_str, quiz_result, elapsed
+    return quiz_num, expected_solution, actual_solution_str, quiz_result, elapsed, n_zeros
 
 
 def main():
@@ -43,6 +45,11 @@ def main():
     displot = sns.displot(data=df, x="correct", col="mode", hue="mode", bins=[0,1])
     displot_figure = displot.figure
     displot_figure.savefig(os.path.join(output_dir, "correct_plot.png"))
+    lmplot = sns.lmplot(
+        data=df, x="n_zeros", y="time", hue="mode"
+    )
+    lmplot_figure = lmplot.figure
+    lmplot_figure.savefig(os.path.join(output_dir, "zeros_vs_speed_plot.png"))
     timer_description = df.groupby(by="mode")['correct'].describe()
     correct_description = df.groupby(by="mode")['time'].describe()
     with open(os.path.join(output_dir, "performace_results.txt"), 'w') as txt_file:
@@ -53,7 +60,7 @@ def main():
 
 def run(quiz_nums, mode):
     results = [solve_quiz(quiz_num, mode) for quiz_num in quiz_nums]
-    results_df = pd.DataFrame(results, columns=['id', 'expected_solution', 'actual_solution', 'correct', 'time'])
+    results_df = pd.DataFrame(results, columns=['id', 'expected_solution', 'actual_solution', 'correct', 'time', 'n_zeros'])
     return results_df
 
 
