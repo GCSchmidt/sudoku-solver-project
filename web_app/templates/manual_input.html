@@ -7,7 +7,7 @@
 {% block body %}
 
 <h2 class="title">Input the Sudoku Quiz Manually</h2>
-<form method="POST" action="{{ url_for('solution_post') }}">
+<form method="POST" action="{{ url_for('solution') }}">
 <div id="div-table">
 <table>
     {% for row_index in range(0,9) %}
