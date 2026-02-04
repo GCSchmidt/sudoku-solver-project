@@ -34,7 +34,7 @@ def install_requirements():
 
         requirements_file = "requirements.txt"
         if os.path.exists(requirements_file):
-            subprocess.run([python_path, "-m", "pip", "install", "-r", requirements_file], check=True)
+            subprocess.run([python_path, "-m", "pip", "install", "--no-cache-dir", "-r", requirements_file], check=True)
             print("Required libraries installed successfully in the virtual environment.")
         else:
             print(f"Requirements file '{requirements_file}' not found. Skipping installation.")

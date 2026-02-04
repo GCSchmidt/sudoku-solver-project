@@ -12,13 +12,14 @@ import scripts.sudoku_solver as sudoku_solver
 ALLOWED_EXTENSIONS = {'png', 'jpeg'}
 
 
-def allowed_file(filename) -> Tuple[bool, str] | None:
+def allowed_file(filename) -> Tuple[bool, str | None]:
     if '.' in filename:
         file_extension = filename.rsplit('.', 1)[1].lower()
-    else: 
-        return None
+    else:
+        return False, None
 
     return file_extension in ALLOWED_EXTENSIONS, file_extension
+
 
 def parse_and_validate_grid(cell_values: list[str]) -> Tuple[sudoku_solver.Solver, str]:
     quiz_str = "".join(cell_values)
@@ -43,39 +44,38 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/manual_input')
-def manual_input():
-    error = request.args.get('error')
-    return render_template('manual_input.html', error=error)
-
 @app.route('/manual_input', methods=['POST'])
-def manual_input_post():
+def manual_input():
     error = None
-    if 'file' not in request.files:
-        error = "No File was Uploaded"
-        return render_template('manual_input.html', error=error)
-    else:
-        file = request.files['file']
-        filename = secure_filename(file.filename)
-        file_check = allowed_file(filename)
-        if file_check:
-            _, file_extension = file_check
-            filename = f"image_file.{file_extension}"
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        else:
-            error = "Invalid File was Uploaded"
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            error = "No File was Uploaded"
             return render_template('manual_input.html', error=error)
-    filepath = os.path.join(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    grid = sudoku_solver.image_to_sudoku_quiz(filepath)
-    cell_values = "".join([str(val) for val in grid.flatten()])
-    return render_template(
-        'manual_input.html',
-        error=error,
-        preset_cell_values=cell_values
-    )
+        else:
+            file = request.files['file']
+            filename = secure_filename(file.filename)
+            file_check, file_extension = allowed_file(filename)
+            if file_check:
+                filename = f"image_file.{file_extension}"
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            else:
+                error = "Invalid File was Uploaded"
+                return render_template('manual_input.html', error=error)
+        filepath = os.path.join(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        grid = sudoku_solver.image_to_sudoku_quiz(filepath)
+        cell_values = "".join([str(val) for val in grid.flatten()])
+        return render_template(
+            'manual_input.html',
+            error=error,
+            preset_cell_values=cell_values
+        )
+    else:
+        error = request.args.get('error')
+        return render_template('manual_input.html', error=error)
+
 
 @app.route('/solution', methods=['POST'])
-def solution_post():
+def solution():
     cell_values = [request.form.get(f"cell_{i}", "0") for i in range(81)]
 
     solver, error = parse_and_validate_grid(cell_values)
@@ -100,4 +100,4 @@ def handle_file_too_large(e):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)

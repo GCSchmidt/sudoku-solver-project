@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import time
 import argparse
+from enum import Enum
 from collections import defaultdict
 import cv2 as cv
 
@@ -19,6 +20,7 @@ import models.snet as snet
 logger = logging.getLogger(__name__)
 logger.disabled = True
 digit_clf = snet.SNET_Model()
+logger_dir = os.path.join(parent_dir, "logs")
 
 # Helper Functions
 
@@ -206,6 +208,10 @@ def check_for_duplicate(arr: np.ndarray) -> bool:
 
 
 # Classes
+class Modes(Enum):
+    TRY_HARD = 1
+    SIMPLE = 2
+    BRUTE_FORCE = 3
 
 
 class Solver():
@@ -216,7 +222,7 @@ class Solver():
         self.unsolved_cells = defaultdict(lambda: np.arange(1, 10, dtype=np.uint8))  # default value is np array 1-9
         for pos in map(tuple, unsolved_cell_positions):
             self.unsolved_cells[pos]  # create dict entries with defaut values
-        self.try_hard = True
+        self.mode = Modes.TRY_HARD
 
     def check_if_only(self, possibilities: np.ndarray, positions: list) -> np.ndarray:
         """
@@ -250,7 +256,7 @@ class Solver():
         # if it is the only possibility in the row
         logger.info(f"\n\tPossibilities after checkig row: {possibilities}")
         # check to see if only possibility in row
-        if len(possibilities) > 1 and self.try_hard:
+        if len(possibilities) > 1 and (self.mode == Modes.TRY_HARD):
             unsolved_cell_cols = np.argwhere(row_to_check == 0)
             # remove the current cell col
             unsolved_cell_cols = [col[0] for col in unsolved_cell_cols if col != col_index]
@@ -270,7 +276,7 @@ class Solver():
         possibilities = np.array([value for value in possibilities if value not in col_to_check])
         logger.info(f"\n\tPossibilities after checking col: {possibilities}")
         # check to see if only possibility in col
-        if len(possibilities) > 1 and self.try_hard:
+        if len(possibilities) > 1 and (self.mode == Modes.TRY_HARD):
             unsolved_cell_rows = np.argwhere(col_to_check == 0)
             # remove the current cell col
             unsolved_cell_rows = [row[0] for row in unsolved_cell_rows if row != row_index]
@@ -291,7 +297,7 @@ class Solver():
         possibilities = np.array([value for value in possibilities if value not in box_to_check_flat])
         logger.info(f"\n\tPossibilities after checking region: {possibilities}")
         # check to see if only possibility in col
-        if len(possibilities) > 1 and self.try_hard:
+        if len(possibilities) > 1 and (self.mode == Modes.TRY_HARD):
             unsolved_cell_positions = np.argwhere(box_to_check == 0)
             new_unsolved_cell_positions = []
             base_row = (row_index // 3) * 3
@@ -429,10 +435,19 @@ class Solver():
 
     def solve(self) -> np.ndarray:
         """
-        Solves the initial grid.
+        Solves initial grid with specific method
         """
-        # TODO check other unsolved cells in row, and collumns and boxes to figure out correct value
-        
+        if (self.mode == Modes.TRY_HARD) or (self.mode == Modes.SIMPLE):
+            return self.solve_method()
+        elif (self.mode == Modes.BRUTE_FORCE):
+            self.solve_recursively(0)
+
+        return self.grid_intermediate
+
+    def solve_method(self) -> np.ndarray:
+        """
+        Method to solve the initial grid.
+        """        
         loops_with_no_update = 0
         n_unsolved_cells = len(self.unsolved_cells)
 
@@ -478,13 +493,14 @@ class Solver():
             else:
                 loops_with_no_update += 1
                 # no changes were made, try with naked pairs
-                row_ids, col_ids, region_ids = self.get_ids_of_unsolved_cells()
-                for i in row_ids:
-                    self.check_naked_pairs(self.get_unsolved_positions_in_row(i))
-                for i in col_ids:
-                    self.check_naked_pairs(self.get_unsolved_positions_in_col(i))
-                for i in region_ids:
-                    self.check_naked_pairs(self.get_unsolved_positions_in_region(i))
+                if (self.mode == Modes.TRY_HARD):
+                    row_ids, col_ids, region_ids = self.get_ids_of_unsolved_cells()
+                    for i in row_ids:
+                        self.check_naked_pairs(self.get_unsolved_positions_in_row(i))
+                    for i in col_ids:
+                        self.check_naked_pairs(self.get_unsolved_positions_in_col(i))
+                    for i in region_ids:
+                        self.check_naked_pairs(self.get_unsolved_positions_in_region(i))
 
             logger.info(f"\nNUMBER OF LOOPS WITH NO UPDATE: {loops_with_no_update}")
             
@@ -492,7 +508,6 @@ class Solver():
                 logger.info(f"\nTOO MANY LOOPS")
                 logger.info(f"\nATTEMPTING TO SOLVE WITH BRUTE FORCE")
                 # use brute force to find solution
-                # needs to be optimized
                 self.solve_recursively(0)
                 break
 
@@ -573,8 +588,10 @@ def main(args):
     quiz_file, log = args.quiz_file, args.log
 
     if log:
-        os.makedirs('logs', exist_ok=True)
-        logging.basicConfig(filename=r'./logs/ss.log',
+        
+        os.makedirs(logger_dir, exist_ok=True)
+        logger_file = os.path.join(logger_dir, "ss.log")
+        logging.basicConfig(filename=logger_file,
                             filemode='w',
                             level=logging.INFO)
         logger.disabled = False
