@@ -493,13 +493,14 @@ class Solver():
             else:
                 loops_with_no_update += 1
                 # no changes were made, try with naked pairs
-                row_ids, col_ids, region_ids = self.get_ids_of_unsolved_cells()
-                for i in row_ids:
-                    self.check_naked_pairs(self.get_unsolved_positions_in_row(i))
-                for i in col_ids:
-                    self.check_naked_pairs(self.get_unsolved_positions_in_col(i))
-                for i in region_ids:
-                    self.check_naked_pairs(self.get_unsolved_positions_in_region(i))
+                if (self.mode == Modes.TRY_HARD):
+                    row_ids, col_ids, region_ids = self.get_ids_of_unsolved_cells()
+                    for i in row_ids:
+                        self.check_naked_pairs(self.get_unsolved_positions_in_row(i))
+                    for i in col_ids:
+                        self.check_naked_pairs(self.get_unsolved_positions_in_col(i))
+                    for i in region_ids:
+                        self.check_naked_pairs(self.get_unsolved_positions_in_region(i))
 
             logger.info(f"\nNUMBER OF LOOPS WITH NO UPDATE: {loops_with_no_update}")
             
@@ -507,7 +508,6 @@ class Solver():
                 logger.info(f"\nTOO MANY LOOPS")
                 logger.info(f"\nATTEMPTING TO SOLVE WITH BRUTE FORCE")
                 # use brute force to find solution
-                # needs to be optimized
                 self.solve_recursively(0)
                 break
 
